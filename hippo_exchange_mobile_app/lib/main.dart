@@ -174,7 +174,39 @@ class MainApp extends StatelessWidget {
           ),
         ),
       ),
+        // DEMO NAV BAR
+        bottomNavigationBar: BottomNavigationBar(
+          //type: BottomNavigationBarType.shifting,
+          // selected items settings
+          selectedItemColor: Colors.black,
+          selectedIconTheme: IconThemeData(color: Colors.blueGrey[800]),
+          selectedLabelStyle: TextStyle(fontSize: 15),
           
+          // unselected items settings
+          unselectedItemColor: Colors.black,
+          unselectedLabelStyle: TextStyle(fontSize: 15),
+          unselectedIconTheme: IconThemeData(color: Colors.blueGrey[800],  ),
+          
+          // List of items in the actual bar
+          items: [
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.home,
+              ),
+            label: "Home",
+          
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.login),
+            label: "Login",
+            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.app_registration),
+            label: "Registration"
+            ),
+
+          ]
+        ),
       
       )
     );
