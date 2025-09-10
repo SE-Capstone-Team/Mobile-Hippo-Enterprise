@@ -119,27 +119,12 @@ class MainApp extends StatelessWidget {
                 )
               ),
             const SizedBox(height: 10),
-            // HYPERLINK BUTTON FOR REGISTERATION 
-            //  INSTEAD OF BUTTON OPTION
-            // TextButton( onPressed: () {
-              
-            //   },
-            //   child: Text(
-            //        "Dont Have and Account?",
-            //         style: TextStyle(
-            //           decoration: TextDecoration.underline,
-            //           color: Colors.grey[700],
-            //           fontSize: 15,
-            //         ),
-            //       )
-            
-            // )
             
             // Text below login field
             Text(
-              "Dont Have and Account?",
+              "- Dont Have and Account? -",
               style: TextStyle(
-                decoration: TextDecoration.underline,
+                //decoration: TextDecoration,
                 color: Colors.grey[700],
                 fontSize: 16,
 
