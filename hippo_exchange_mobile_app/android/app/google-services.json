@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "589325248066",
+    "project_id": "csc-4610-470418",
+    "storage_bucket": "csc-4610-470418.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:589325248066:android:e04d951ba00db70768efdb",
+        "android_client_info": {
+          "package_name": "com.example.hippo_exchange_mobile_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "589325248066-j1ivr69sbgtmq6v5o1pvebma8uacc997.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADR7YcoPPiK8n-664voLvdTlsbxqrYbU0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "589325248066-j1ivr69sbgtmq6v5o1pvebma8uacc997.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "589325248066-2nki0iv04ff2huehi7dugl4h4lvkmahs.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hippoExchangeMobileApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
