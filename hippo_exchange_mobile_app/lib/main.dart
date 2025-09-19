@@ -17,20 +17,51 @@ void firebase() async {
 }
 
 
+// MAIN CALL TO START THE APP 
 void main() {
-  
-  runApp(const MainApp());
+  runApp(
+    const MaterialApp(debugShowCheckedModeBanner: false, home: BasePage()),
+  );
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+
+class BasePage extends StatefulWidget {
+  const BasePage({super.key});
 
   @override
+  State<BasePage> createState() => _BasePageState();
+}
+
+class _BasePageState extends State<BasePage> {
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = const [LoginPage(), RegistrationPage()];
+
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+    return Scaffold(
+      body: IndexedStack(index: _currentIndex, children: _pages),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        selectedItemColor: Colors.black,
+        selectedIconTheme: IconThemeData(color: Colors.blueGrey[800]),
+        selectedLabelStyle: const TextStyle(fontSize: 15),
+        unselectedItemColor: Colors.black,
+        unselectedLabelStyle: const TextStyle(fontSize: 15),
+        unselectedIconTheme: IconThemeData(color: Colors.blueGrey[800]),
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.login), label: "Login"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.app_registration),
+            label: "Registration",
+          ),
+        ],
+      ),
     );
   }
 }
