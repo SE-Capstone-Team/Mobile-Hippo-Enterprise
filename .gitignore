@@ -1,1 +1,69 @@
+### Flutter Project ignores (hippo_exchange_mobile_app)
+
+# Flutter/Dart
+hippo_exchange_mobile_app/.dart_tool/
+hippo_exchange_mobile_app/.packages
+hippo_exchange_mobile_app/.pub/
+hippo_exchange_mobile_app/build/
+hippo_exchange_mobile_app/pubspec.lock
+hippo_exchange_mobile_app/doc/api/
+
+# Android
+hippo_exchange_mobile_app/android/.gradle/
+hippo_exchange_mobile_app/android/local.properties
+hippo_exchange_mobile_app/android/**/GeneratedPluginRegistrant.java
+hippo_exchange_mobile_app/android/app/*.keystore
+hippo_exchange_mobile_app/android/key.properties
+hippo_exchange_mobile_app/android/captures/
+hippo_exchange_mobile_app/android/.externalNativeBuild
+
+# iOS / macOS
+hippo_exchange_mobile_app/ios/Flutter/Flutter.framework
+hippo_exchange_mobile_app/ios/Flutter/Flutter.podspec
+hippo_exchange_mobile_app/ios/Flutter/Generated.xcconfig
+hippo_exchange_mobile_app/ios/Flutter/ephemeral/
+hippo_exchange_mobile_app/ios/Pods/
+hippo_exchange_mobile_app/ios/ServiceDefinitions.json
+hippo_exchange_mobile_app/macos/Pods/
+hippo_exchange_mobile_app/macos/Flutter/ephemeral/
+hippo_exchange_mobile_app/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Windows
+hippo_exchange_mobile_app/windows/flutter/generated_plugin_registrant.*
+
+# Linux
+hippo_exchange_mobile_app/linux/flutter/generated_plugin_registrant.*
+
+# Web
+hippo_exchange_mobile_app/lib/generated_plugin_registrant.dart
+
+# VS Code
+hippo_exchange_mobile_app/.vscode/*
+!hippo_exchange_mobile_app/.vscode/settings.json
+!hippo_exchange_mobile_app/.vscode/tasks.json
+!hippo_exchange_mobile_app/.vscode/launch.json
+!hippo_exchange_mobile_app/.vscode/extensions.json
+
+# IntelliJ / Android Studio
+hippo_exchange_mobile_app/*.iml
+hippo_exchange_mobile_app/.idea/
+hippo_exchange_mobile_app/out/
+
+# System
+.DS_Store
+hippo_exchange_mobile_app/.DS_Store
+
+# Logs
+*.log
+
+# Google/Firebase configs (if not public)
+hippo_exchange_mobile_app/GoogleService-Info.plist
+hippo_exchange_mobile_app/google-services.json
+
+# Firebase configs
+hippo_exchange_mobile_app/android/app/google-services.json
+hippo_exchange_mobile_app/ios/Runner/GoogleService-Info.plist
+hippo_exchange_mobile_app/macos/Runner/GoogleService-Info.plist
+hippo_exchange_mobile_app/web/firebase-config.js
+
 .idea/
