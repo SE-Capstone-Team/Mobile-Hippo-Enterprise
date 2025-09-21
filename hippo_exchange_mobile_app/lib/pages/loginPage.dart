@@ -1,12 +1,46 @@
-  import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:hippo_exchange_mobile_app/auth_service.dart';
 
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
+  State<LoginPage> createState() => _LoginPageState();
+}
 
-  
+class _LoginPageState extends State<LoginPage> {
+ final TextEditingController emailController = TextEditingController();
+ final TextEditingController passwordController = TextEditingController();
+
+ bool _loading = false;
+ String? _error;
+
+ @override
+ void dispose() {
+   emailController.dispose();
+   passwordController.dispose();
+   super.dispose();
+ }
+
+ Future<void> _handleLogin() async {
+   setState(() {
+     _loading = true;
+     _error = null;
+   });
+
+   try {
+     await AuthService().emailsignin(
+       email: emailController.text.trim(),
+       password: passwordController.text.trim(),
+     );
+     // AuthGate in main.dart will switch to HomePage automatically
+   } catch (e) {
+     setState(() => _error = e.toString());
+   } finally {
+     if (mounted) setState(() => _loading = false);
+   }
+ }
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false, // removes debug banner
@@ -52,7 +86,7 @@ class LoginPage extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "Username",
+                  "Email",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ),
@@ -60,8 +94,9 @@ class LoginPage extends StatelessWidget {
               
               // Username text field
               TextField(
+                controller: emailController,
                 decoration: InputDecoration(
-                  hintText: "Enter Username",
+                  hintText: "Enter Email",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -84,6 +119,7 @@ class LoginPage extends StatelessWidget {
 
               // Password field box 
               TextField(
+                controller: passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: "Enter Password",
@@ -193,7 +229,7 @@ class LoginPage extends StatelessWidget {
       
       )
     );
-    
+
   }
 }
 
