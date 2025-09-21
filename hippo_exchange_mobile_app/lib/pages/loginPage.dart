@@ -144,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: (){},
+                  onPressed: _handleLogin,
                   child: Text("Login", style: TextStyle(
                     color: Colors.white,
                     fontSize: 20
