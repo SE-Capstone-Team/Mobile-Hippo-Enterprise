@@ -146,6 +146,11 @@ fastlane/readme.md
 .packages
 .pub/
 build/
+# Flutter build outputs
+
+*.apk
+*.aab
+
 # If you're building an application, you may want to check-in your pubspec.lock
 pubspec.lock
 
