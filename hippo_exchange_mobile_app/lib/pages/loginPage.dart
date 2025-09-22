@@ -47,9 +47,12 @@ class _LoginPageState extends State<LoginPage> {
  }
   Widget build(BuildContext context) {
     return MaterialApp(
+      //color: Colors.white,
       debugShowCheckedModeBanner: false, // removes debug banner
       home: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
+          backgroundColor: Colors.white,
           title:  Text(
             'Hippo Enterprise',
             style: TextStyle(

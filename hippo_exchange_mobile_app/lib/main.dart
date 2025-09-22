@@ -37,6 +37,7 @@ class _BasePageState extends State<BasePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: IndexedStack(
         index: _currentIndex,
         children: [
@@ -45,6 +46,7 @@ class _BasePageState extends State<BasePage> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
         currentIndex: _currentIndex,
         selectedItemColor: Colors.black,
         selectedIconTheme: IconThemeData(color: Colors.blueGrey[800]),
