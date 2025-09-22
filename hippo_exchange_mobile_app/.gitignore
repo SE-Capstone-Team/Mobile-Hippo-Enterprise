@@ -122,8 +122,6 @@ captures/
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
 
 # Freeline
 freeline.py
@@ -322,7 +320,7 @@ DerivedData/
 
 ## Custom
 # Google API key and other resources
-GoogleService-Info.plist
-google-services.json
+# GoogleService-Info.plist
+# google-services.json
 # Plugins (already resolved through pubspec.yaml)
 .flutter-plugins

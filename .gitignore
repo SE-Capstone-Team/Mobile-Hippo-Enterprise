@@ -57,8 +57,8 @@ hippo_exchange_mobile_app/.DS_Store
 *.log
 
 # Google/Firebase configs (if not public)
-hippo_exchange_mobile_app/GoogleService-Info.plist
-hippo_exchange_mobile_app/google-services.json
+# hippo_exchange_mobile_app/GoogleService-Info.plist
+# hippo_exchange_mobile_app/google-services.json
 
 # Firebase configs
 hippo_exchange_mobile_app/android/app/google-services.json
