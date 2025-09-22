@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final _db = FirebaseFirestore.instance;
+  final _db = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'inventory-db');
 
   // region login and logout process
   Future<UserCredential> emailsignin({
@@ -15,7 +16,7 @@ class AuthService {
       password: password,
     );
     final uid = cred.user!.uid;
-    final profile = await FirebaseFirestore.instance.collection('users').doc(
+    final profile = await _db.collection('users').doc(
         uid).get();
     return cred;
   }

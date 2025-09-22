@@ -164,10 +164,6 @@ class RegistrationPage extends StatefulWidget {
                 const SizedBox(height: 10),
                 Text(_error!, style: const TextStyle(color: Colors.red)),
               ],
-              if (_success != null) ...[
-                const SizedBox(height: 10),
-                Text(_success!, style: const TextStyle(color: Colors.green)),
-              ],
             ],
           ),
         ),

@@ -43,10 +43,15 @@ class _LoginPageState extends State<LoginPage> {
        password: passwordController.text.trim(),
      );
      // AuthGate in main.dart will switch to HomePage automatically
-   } catch (e) {
+     if (mounted) {
+       ScaffoldMessenger.of(context).showSnackBar(
+         const SnackBar(content: Text('Login successful!')),
+       );
+     }
+   } on Exception catch (e) {
      setState(() => _error = e.toString());
    } finally {
-     if (mounted) setState(() => _loading = false);
+     if (mounted) setState(() => _loading = false );
    }
  }
   Widget build(BuildContext context) {
@@ -169,11 +174,6 @@ class _LoginPageState extends State<LoginPage> {
               if (_error != null) ...[
                 const SizedBox(height: 10),
                 Text(_error!, style: const TextStyle(color: Colors.red)),
-              ],
-
-              if (_success != null) ...[
-                const SizedBox(height: 10),
-                Text(_success!, style: const TextStyle(color: Colors.green)),
               ],
 
             // Text below login field
