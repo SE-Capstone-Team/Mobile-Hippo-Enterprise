@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/auth_service.dart';
+import 'package:hippo_exchange_mobile_app/pages/registrationPage.dart';
 
 
 
