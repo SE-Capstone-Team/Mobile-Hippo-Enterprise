@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/auth_service.dart';
+import 'package:hippo_exchange_mobile_app/pages/registrationPage.dart';
 
+
+
+typedef RegisterCallback = void Function();
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final RegisterCallback? onRegisterTap;
+  const LoginPage({super.key, this.onRegisterTap});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -177,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: widget.onRegisterTap,
                 child: Text(
                   "Register",
                   style: TextStyle(color: Colors.white, fontSize: 20),

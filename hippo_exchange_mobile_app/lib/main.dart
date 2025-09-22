@@ -28,12 +28,22 @@ class BasePage extends StatefulWidget {
 class _BasePageState extends State<BasePage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [LoginPage(), RegistrationPage()];
+  void _goToRegistration() {
+    setState(() {
+      _currentIndex = 1;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          LoginPage(onRegisterTap: _goToRegistration),
+          const RegistrationPage(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: Colors.black,
