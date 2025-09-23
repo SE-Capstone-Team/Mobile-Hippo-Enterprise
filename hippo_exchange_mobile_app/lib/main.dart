@@ -33,11 +33,6 @@ class _BasePageState extends State<BasePage> {
       _currentIndex = 1;
     });
   }
-  void _goToRegistration() {
-    setState(() {
-      _currentIndex = 1;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
