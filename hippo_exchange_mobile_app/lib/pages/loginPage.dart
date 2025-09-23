@@ -19,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
 
  bool _loading = false;
  String? _error;
+ String? _success;
 
  @override
  void dispose() {
@@ -31,7 +32,10 @@ class _LoginPageState extends State<LoginPage> {
    setState(() {
      _loading = true;
      _error = null;
+     _success = null;
    });
+
+   setState(() => _success = "Login Successful!" );
 
    try {
      await AuthService().emailsignin(
@@ -39,10 +43,15 @@ class _LoginPageState extends State<LoginPage> {
        password: passwordController.text.trim(),
      );
      // AuthGate in main.dart will switch to HomePage automatically
-   } catch (e) {
+     if (mounted) {
+       ScaffoldMessenger.of(context).showSnackBar(
+         const SnackBar(content: Text('Login successful!')),
+       );
+     }
+   } on Exception catch (e) {
      setState(() => _error = e.toString());
    } finally {
-     if (mounted) setState(() => _loading = false);
+     if (mounted) setState(() => _loading = false );
    }
  }
   Widget build(BuildContext context) {
@@ -139,28 +148,34 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child:ElevatedButton(
-                    
-                  style: ElevatedButton.styleFrom(
-                 
-                    backgroundColor: Colors.blueGrey[800],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              if (_loading)
+                const CircularProgressIndicator()
+              else
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child:ElevatedButton(
+
+                    style: ElevatedButton.styleFrom(
+
+                      backgroundColor: Colors.blueGrey[800],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  ),
-                  onPressed: _handleLogin,
-                  child: Text("Login", style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20
-                    ),
+                    onPressed: _handleLogin,
+                    child: Text("Login", style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20
+                      ),
+                    )
                   )
-                )
-              ),
-            const SizedBox(height: 10),
-            
+                ),
+              if (_error != null) ...[
+                const SizedBox(height: 10),
+                Text(_error!, style: const TextStyle(color: Colors.red)),
+              ],
+
             // Text below login field
             Text(
               "- Dont Have and Account? -",
