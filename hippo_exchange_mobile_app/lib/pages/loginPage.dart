@@ -19,24 +19,21 @@ class _LoginPageState extends State<LoginPage> {
 
  bool _loading = false;
  String? _error;
- String? _success;
 
+ //removes local variables when done sending to the server
  @override
  void dispose() {
    emailController.dispose();
    passwordController.dispose();
    super.dispose();
  }
-
  Future<void> _handleLogin() async {
    setState(() {
      _loading = true;
      _error = null;
-     _success = null;
    });
-
-   setState(() => _success = "Login Successful!" );
-
+   //waits for email and password from user
+   //region email signin
    try {
      await AuthService().emailsignin(
        email: emailController.text.trim(),
@@ -52,8 +49,9 @@ class _LoginPageState extends State<LoginPage> {
      setState(() => _error = e.toString());
    } finally {
      if (mounted) setState(() => _loading = false );
-   }
+   } //endregion
  }
+
   Widget build(BuildContext context) {
     return MaterialApp(
       //color: Colors.white,
@@ -150,8 +148,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 20),
               if (_loading)
                 const CircularProgressIndicator()
-              else
-                SizedBox(
+              else SizedBox(
                   width: double.infinity,
                   height: 50,
                   child:ElevatedButton(
@@ -168,8 +165,8 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.white,
                       fontSize: 20
                       ),
-                    )
-                  )
+                    ),
+                  ),
                 ),
               if (_error != null) ...[
                 const SizedBox(height: 10),
@@ -177,6 +174,7 @@ class _LoginPageState extends State<LoginPage> {
               ],
 
             // Text below login field
+            if(!_loading)
             Text(
               "- Dont Have and Account? -",
               style: TextStyle(
@@ -188,7 +186,8 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 15),
 
-            // Registration button  
+            // Registration button
+            if(!_loading)
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -207,6 +206,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
                 const SizedBox(height: 10),
+
 
       
 

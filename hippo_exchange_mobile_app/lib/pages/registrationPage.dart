@@ -15,8 +15,7 @@ class RegistrationPage extends StatefulWidget {
   @override
   State<RegistrationPage> createState() => _RegisterPageState();
 }
-  //the fun begins
-  //plays middleman between the client and firebase
+
   class _RegisterPageState extends State<RegistrationPage> {
     final nameController = TextEditingController();
     final emailController = TextEditingController();
@@ -26,7 +25,6 @@ class RegistrationPage extends StatefulWidget {
     //important states that lets the app and client know progress
     bool _loading = false;
     String? _error;
-    String? _success;
 
     //when finished sending data to firebase, we dispose of data
     //and let firebase do the work.
@@ -46,8 +44,7 @@ class RegistrationPage extends StatefulWidget {
       final confirm = confirmController.text;
       final displayName = nameController.text.trim();
 
-      setState(() => _success = "Registration Successful!" );
-
+      //region email password complexity
       if (email.isEmpty || password.isEmpty) {
         setState(() => _error = 'Email and password are required.' );
         return;
@@ -56,20 +53,35 @@ class RegistrationPage extends StatefulWidget {
         setState(() => _error = 'Passwords do not match.' );
         return;
       }
-
-
-      //can change password length (firebase may already have a default
-      if (password.length < 6) {
-        setState(() => _error = 'Password must be at least 6 characters.' );
+      if (RegExp(r'\s').hasMatch(password)) {
+        setState(() => _error =  'No spaces allowed in password.');
+        return;
       }
+      if (password.length < 8) {
+        setState(() => _error = 'Password must be at least 8 characters.' );
+        return;
+      }
+      if (!RegExp(r'[A-Z]').hasMatch(password)) {
+        setState(() => _error = 'Add at least one uppercase letter.');
+        return;
+      }
+      if (!RegExp(r'\d').hasMatch(password)) {
+        setState(() => _error = 'Add at least one number.');
+        return;
+      }
+      if (!RegExp(r'[^\w\s]').hasMatch(password)) { // any non-alphanumeric (no space)
+        setState(() => _error = 'Add at least one symbol.');
+        return;
+      }
+      //endregion
 
-      //region Server Communication
 
       setState(() {
         _loading = true;
         _error = null;
       });
 
+      //region connection to firebase
       try{
         await AuthService().register(
             email: email,
@@ -86,9 +98,10 @@ class RegistrationPage extends StatefulWidget {
         setState(() => _error = e.toString());
       } finally {
         if (mounted) setState(() => _loading = false );
-      }
+      }//endregion
+
+
     }
-    //endregion
 
   @override
   Widget build(BuildContext context) {
