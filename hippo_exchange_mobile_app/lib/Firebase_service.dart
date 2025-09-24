@@ -3,8 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 class AuthService {
+  //shortcuts to call
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final _db = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'inventory-db');
+  CollectionReference<Map<String, dynamic>> get _items => _db.collection('items');//region Inventory Process
+
 
   // region login and logout process
   Future<UserCredential> emailsignin({
@@ -49,4 +52,36 @@ class AuthService {
 
  //endregion
 
+  //region Inventory Process
+  Future<DocumentReference> addItem({
+    required String name,
+    required String sku,
+    double? unitCost,
+    String? location,
+    String? category
+}) async {
+    //this what we grab
+    final data = {
+      'name': name,
+      'sku': sku,
+      'unitCost': unitCost,
+      'location': location,
+      'category': category,
+    };
+    return await _items.add(data);
+  }
+  //delete
+  Future<void> deleteItem(String id) async {
+    await _items.doc(id).delete();
+  }
+  //update
+  Future<void> updateItem(String id, Map<String, dynamic> updates) async {
+    updates['updatedAt'] = FieldValue.serverTimestamp();
+    await _db.collection('items').doc(id).set(updates, SetOptions(merge: true));
+  } //endregion
+
+
 }
+
+
+
