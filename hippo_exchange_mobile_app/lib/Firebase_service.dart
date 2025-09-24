@@ -19,7 +19,7 @@ class AuthService {
       password: password,
     );
     final uid = cred.user!.uid;
-    final profile = await _db.collection('users').doc(
+    final profile = await _db.collection('profiles').doc(
         uid).get();
     return cred;
   }
@@ -39,7 +39,7 @@ class AuthService {
     if (displayName != null && displayName.isNotEmpty) {
       await cred.user!.updateDisplayName(displayName);
     }
-    await _db.collection('users').doc(cred.user!.uid).set({
+    await _db.collection('profiles').doc(cred.user!.uid).set({
       'email':email,
       'displayName': displayName ?? '',
       'createdAt': FieldValue.serverTimestamp(),
