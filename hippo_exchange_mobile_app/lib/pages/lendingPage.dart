@@ -227,42 +227,6 @@ class _LendingPageState extends State<Lendingpage> {
         ),
         // LIST OF OBJECTS END
 
-        // BOTTOM NAVIGATION BAR START
-        bottomNavigationBar: BottomNavigationBar(
-        
-          type: BottomNavigationBarType.fixed,
-          selectedIconTheme: IconThemeData(color: Colors.black),
-          unselectedIconTheme: IconThemeData(color: Colors.black87),
-        
-          backgroundColor: Colors.white,
-          elevation: .8,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.black54,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              label: 'Search',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart),
-              label: 'Cart',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.notifications),
-              label: 'Alerts',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-          currentIndex: 0,
-          onTap: (index) {},
-        ),
       ),
     );
   }
