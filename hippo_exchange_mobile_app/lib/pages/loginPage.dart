@@ -3,11 +3,16 @@ import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
 
 
 
+
+
 typedef RegisterCallback = void Function();
+typedef LoginSuccessCallback = void Function();
 
 class LoginPage extends StatefulWidget {
   final RegisterCallback? onRegisterTap;
-  const LoginPage({super.key, this.onRegisterTap});
+  final LoginSuccessCallback? onLoginSuccess;
+
+  LoginPage({Key? key, this.onRegisterTap, this.onLoginSuccess}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -32,24 +37,24 @@ class _LoginPageState extends State<LoginPage> {
      _loading = true;
      _error = null;
    });
-   //waits for email and password from user
-   //region email signin
    try {
      await AuthService().emailsignin(
        email: emailController.text.trim(),
        password: passwordController.text.trim(),
      );
-     // AuthGate in main.dart will switch to HomePage automatically
      if (mounted) {
        ScaffoldMessenger.of(context).showSnackBar(
          const SnackBar(content: Text('Login successful!')),
        );
+       if (widget.onLoginSuccess != null) {
+         widget.onLoginSuccess!();
+       }
      }
    } on Exception catch (e) {
      setState(() => _error = e.toString());
    } finally {
      if (mounted) setState(() => _loading = false );
-   } //endregion
+   }
  }
 
   Widget build(BuildContext context) {

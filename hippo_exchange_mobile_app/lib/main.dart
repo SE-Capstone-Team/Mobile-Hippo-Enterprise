@@ -44,7 +44,18 @@ class _BasePageState extends State<BasePage> {
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          LoginPage(onRegisterTap: _goToRegistration),
+          LoginPage(
+            onRegisterTap: () {
+              setState(() {
+                _currentIndex = 1;
+              });
+            },
+            onLoginSuccess: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const MainPostLoginPage()),
+              );
+            },
+          ),
           const RegistrationPage(),
         ],
       ),
@@ -74,23 +85,4 @@ class _BasePageState extends State<BasePage> {
   }
 }
 
-class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-        stream: AuthService().authState,
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          }
-          final user = snap.data;
-          if (user == null) {
-            return const LoginPage();
-          } else {
-            return const MainPostLoginPage();
-          }
-        });
-  }
-}
