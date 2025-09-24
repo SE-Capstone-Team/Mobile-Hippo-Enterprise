@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
 
-
-
-
-
 typedef RegisterCallback = void Function();
 typedef LoginSuccessCallback = void Function();
 
@@ -12,7 +8,8 @@ class LoginPage extends StatefulWidget {
   final RegisterCallback? onRegisterTap;
   final LoginSuccessCallback? onLoginSuccess;
 
-  LoginPage({Key? key, this.onRegisterTap, this.onLoginSuccess}) : super(key: key);
+  LoginPage({Key? key, this.onRegisterTap, this.onLoginSuccess})
+    : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -24,8 +21,8 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _loading = false;
   String? _error;
-  //String? _success;
 
+  //removes local variables when done sending to the server
   @override
   void dispose() {
     emailController.dispose();
@@ -37,21 +34,19 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _loading = true;
       _error = null;
-      //_success = null;
     });
-
-    //setState(() => _success = "Login Successful!" );
-
     try {
       await AuthService().emailsignin(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      // AuthGate in main.dart will switch to HomePage automatically
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Login successful!')));
+        if (widget.onLoginSuccess != null) {
+          widget.onLoginSuccess!();
+        }
       }
     } on Exception catch (e) {
       setState(() => _error = e.toString());
@@ -60,7 +55,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       //color: Colors.white,
@@ -70,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           title: Text(
-            'Hippo Exchange',
+            'Hippo Enterprise',
             style: TextStyle(
               shadows: [
                 Shadow(
@@ -98,14 +92,14 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 10),
+                 const SizedBox(height: 10),
                 Center(
                   child: Image.asset(
                     'assets/images/HippoExchangeLogo.png',
                     height: 250, // make it bigger
                   ),
                 ),
-                const SizedBox(height: 25),
+                //const SizedBox(height: 150),
 
                 // Username text above field
                 Align(
@@ -141,93 +135,87 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 8),
 
-              // Password field box 
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  hintText: "Enter Password",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[50],
-              
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (_loading)
-                const CircularProgressIndicator()
-              else SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child:ElevatedButton(
-
-                    style: ElevatedButton.styleFrom(
-
-                      backgroundColor: Colors.blueGrey[800],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                // Password field box
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: "Enter Password",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    onPressed: _handleLogin,
-                    child: Text("Login", style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (_loading)
+                  const CircularProgressIndicator()
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueGrey[800],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _handleLogin,
+                      child: Text(
+                        "Login",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
                     ),
                   ),
-                ),
-              if (_error != null) ...[
+                if (_error != null) ...[
+                  const SizedBox(height: 10),
+                  Text(_error!, style: const TextStyle(color: Colors.red)),
+                ],
+
+                // Text below login field
+                if (!_loading)
+                  Text(
+                    "- Dont Have and Account? -",
+                    style: TextStyle(
+                      //decoration: TextDecoration,
+                      color: Colors.grey[700],
+                      fontSize: 16,
+                    ),
+                  ),
+                const SizedBox(height: 15),
+
+                // Registration button
+                if (!_loading)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueGrey[800],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: widget.onRegisterTap,
+                      child: Text(
+                        "Register",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 10),
-                Text(_error!, style: const TextStyle(color: Colors.red)),
               ],
-
-            // Text below login field
-            if(!_loading)
-            Text(
-              "- Dont Have and Account? -",
-              style: TextStyle(
-                //decoration: TextDecoration,
-                color: Colors.grey[700],
-                fontSize: 16,
-
-              ),
             ),
-            const SizedBox(height: 15),
-
-            // Registration button
-            if(!_loading)
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey[800],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: widget.onRegisterTap,
-                child: Text(
-                  "Register",
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                ),
-              ),
-            ),
-                const SizedBox(height: 10),
-
-
-      
-
-            ],
-
           ),
         ),
       ),
     );
   }
 }
+
+
 
 // ******************************
 // ******************************
