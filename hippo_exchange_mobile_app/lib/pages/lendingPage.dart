@@ -68,6 +68,19 @@ class LentItemRow extends StatelessWidget {
   }
 }
 
+// Model for a lent item that will be pulled from DB
+class LentItem {
+  final String imageUrl;
+  final String name;
+  final String borrower;
+  final String timeAgo;
+  LentItem({
+    required this.imageUrl,
+    required this.name,
+    required this.borrower,
+    required this.timeAgo,
+  });
+}
 
 class Lendingpage extends StatefulWidget{
     const Lendingpage({super.key});
@@ -77,19 +90,12 @@ class Lendingpage extends StatefulWidget{
 
 }
 
-// Model for a lent item that will be pulled from DB
-class LentItem {
-  final String imageUrl;
-  final String name;
-  final String borrower;
-  final String timeAgo;
-  LentItem({required this.imageUrl, required this.name, required this.borrower, required this.timeAgo});
-}
+
 
 
 class _LendingPageState extends State<Lendingpage> {
   // Simulate fetching from a database (replace with your DB logic)
-  
+  var fltCreditCount = 0; // this represents the credits at the bottom of the page
   Future<List<LentItem>> fetchLentItems() async {
     await Future.delayed(const Duration(seconds: 1));
     return [
@@ -130,82 +136,108 @@ class _LendingPageState extends State<Lendingpage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        backgroundColor: Colors.white,
         // APP BAR THAT CONTAINS THE TITLE
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(50),
           child: Align(
             child: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0.5,
               titleSpacing: 20,
               // PAGE TITLE
               title: const Text(
                 "Lent Items",
-                style: TextStyle(fontSize: 40),
+                style: TextStyle(fontSize: 40, color: Colors.black),
                 textAlign: TextAlign.left,
               ),
+              iconTheme: const IconThemeData(color: Colors.black),
             ),
           ),
         ),
 
         // LIST OF LENT OBJECTS START
-        body: Column(
-          children: [
-            const SizedBox(height: 20), // Space between app bar and list
-            Expanded(
-              child: FutureBuilder<List<LentItem>>(
-                future: fetchLentItems(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No items lent.'));
-                  }
-                  final items = snapshot.data!;
-                  return Column(
-                    children: [
-                      const Divider(
-                        color: Color(0xFFE0E0E0), // Colors.grey[300]
-                        thickness: 1.2,
-                        height: 0,
-                        indent: 0,
-                        endIndent: 0,
-                      ),
-                      Expanded(
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                          itemCount: items.length,
-                          separatorBuilder: (context, index) => const Divider(
-                            color: Color(0xFFE0E0E0), // Colors.grey[300]
-                            thickness: 1.2,
-                            height: 0,
-                            indent: 16,
-                            endIndent: 16,
-                          ),
-                          itemBuilder: (context, index) {
-                            final item = items[index];
-                            return LentItemRow(item: item);
-                          },
+        body: Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              const SizedBox(height: 20), // Space between app bar and list
+              Expanded(
+                child: FutureBuilder<List<LentItem>>(
+                  future: fetchLentItems(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No items lent.'));
+                    }
+                    final items = snapshot.data!;
+                    return Column(
+                      children: [
+                        const Divider(
+                          color: Color(0xFFE0E0E0), // Colors.grey[300]
+                          thickness: 1.2,
+                          height: 0,
+                          indent: 0,
+                          endIndent: 0,
                         ),
-                      ),
-                      const Divider(
-                        color: Color(0xFFE0E0E0), // Colors.grey[300]
-                        thickness: 1.2,
-                        height: 0,
-                        indent: 0,
-                        endIndent: 0,
-                      ),
-                    ],
-                  );
-                },
+                        Expanded(
+                          child: ListView.separated(
+                            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                            itemCount: items.length,
+                            separatorBuilder: (context, index) => const Divider(
+                              color: Color(0xFFE0E0E0), // Colors.grey[300]
+                              thickness: 1.2,
+                              height: 0,
+                              indent: 16,
+                              endIndent: 16,
+                            ),
+                            itemBuilder: (context, index) {
+                              final item = items[index];
+                              return LentItemRow(item: item);
+                            },
+                          ),
+                        ),
+                        const Divider(
+                          color: Color(0xFFE0E0E0), // Colors.grey[300]
+                          thickness: 1.2,
+                          height: 0,
+                          indent: 0,
+                          endIndent: 0,
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+              // bottom box for what i belive is currency 
+              Container(
+                width: double.infinity,
+                height: 75,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey.shade400, width: 1.2),
+                  
+                ),
+               // child: Center(child: Text("Currency: $fltCreditCount", style: TextStyle(fontSize: 20)))
+              ),
+            ],
+          ),
         ),
         // LIST OF OBJECTS END
 
         // BOTTOM NAVIGATION BAR START
         bottomNavigationBar: BottomNavigationBar(
+        
           type: BottomNavigationBarType.fixed,
+          selectedIconTheme: IconThemeData(color: Colors.black),
+          unselectedIconTheme: IconThemeData(color: Colors.black87),
+        
+          backgroundColor: Colors.white,
+          elevation: .8,
+          selectedItemColor: Colors.black,
+          unselectedItemColor: Colors.black54,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
