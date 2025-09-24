@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:hippo_exchange_mobile_app/auth_service.dart';
+import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
+
+
+
+
 
 typedef RegisterCallback = void Function();
+typedef LoginSuccessCallback = void Function();
 
 class LoginPage extends StatefulWidget {
   final RegisterCallback? onRegisterTap;
-  const LoginPage({super.key, this.onRegisterTap});
+  final LoginSuccessCallback? onLoginSuccess;
+
+  LoginPage({Key? key, this.onRegisterTap, this.onLoginSuccess}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -134,77 +141,87 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 8),
 
-                // Password field box
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: "Enter Password",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
+              // Password field box 
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: "Enter Password",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+              
                 ),
-                const SizedBox(height: 20),
-                if (_loading)
-                  const CircularProgressIndicator()
-                else
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueGrey[800],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _handleLogin,
-                      child: Text(
-                        "Login",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
-                    ),
-                  ),
-                if (_error != null) ...[
-                  const SizedBox(height: 10),
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                ],
-
-                // Text below login field
-                Text(
-                  "- Don't Have and Account? -",
-                  style: TextStyle(
-                    //decoration: TextDecoration,
-                    color: Colors.grey[700],
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                // Registration button
-                SizedBox(
+              ),
+              const SizedBox(height: 20),
+              if (_loading)
+                const CircularProgressIndicator()
+              else SizedBox(
                   width: double.infinity,
                   height: 50,
-                  child: ElevatedButton(
+                  child:ElevatedButton(
+
                     style: ElevatedButton.styleFrom(
+
                       backgroundColor: Colors.blueGrey[800],
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: widget.onRegisterTap,
-                    child: Text(
-                      "Register",
-                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    onPressed: _handleLogin,
+                    child: Text("Login", style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20
+                      ),
                     ),
                   ),
                 ),
+              if (_error != null) ...[
                 const SizedBox(height: 10),
+                Text(_error!, style: const TextStyle(color: Colors.red)),
               ],
+
+            // Text below login field
+            if(!_loading)
+            Text(
+              "- Dont Have and Account? -",
+              style: TextStyle(
+                //decoration: TextDecoration,
+                color: Colors.grey[700],
+                fontSize: 16,
+
+              ),
             ),
+            const SizedBox(height: 15),
+
+            // Registration button
+            if(!_loading)
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey[800],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: widget.onRegisterTap,
+                child: Text(
+                  "Register",
+                  style: TextStyle(color: Colors.white, fontSize: 20),
+                ),
+              ),
+            ),
+                const SizedBox(height: 10),
+
+
+      
+
+            ],
+
           ),
         ),
       ),

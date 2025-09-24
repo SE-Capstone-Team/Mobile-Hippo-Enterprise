@@ -57,8 +57,8 @@ hippo_exchange_mobile_app/.DS_Store
 *.log
 
 # Google/Firebase configs (if not public)
-hippo_exchange_mobile_app/GoogleService-Info.plist
-hippo_exchange_mobile_app/google-services.json
+# hippo_exchange_mobile_app/GoogleService-Info.plist
+# hippo_exchange_mobile_app/google-services.json
 
 # Firebase configs
 hippo_exchange_mobile_app/android/app/google-services.json
@@ -66,4 +66,11 @@ hippo_exchange_mobile_app/ios/Runner/GoogleService-Info.plist
 hippo_exchange_mobile_app/macos/Runner/GoogleService-Info.plist
 hippo_exchange_mobile_app/web/firebase-config.js
 
+#Studio Files
 .idea/
+hippo_exchange_mobile_app/.dart_tool/flutter_build/ab3c699e53d93c7d29bb778645a7e82e/.filecache
+hippo_exchange_mobile_app/.dart_tool/flutter_build/ab3c699e53d93c7d29bb778645a7e82e/app.dill
+hippo_exchange_mobile_app/.dart_tool/flutter_build/ab3c699e53d93c7d29bb778645a7e82e/kernel_snapshot_program.d
+hippo_exchange_mobile_app/macos/Flutter/GeneratedPluginRegistrant.swift
+hippo_exchange_mobile_app/windows/flutter/generated_plugin_registrant.cc
+hippo_exchange_mobile_app/windows/flutter/generated_plugins.cmake
