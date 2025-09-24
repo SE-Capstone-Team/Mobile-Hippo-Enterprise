@@ -1,0 +1,1 @@
+ C:\\Users\\julia\\OneDrive\\Documents\\GitHub\\Mobile-Hippo-Enterprise\\hippo_exchange_mobile_app\\.dart_tool\\flutter_build\\46e64c267b8aced2eb2a7550fb33b49e\\native_assets.json: 
