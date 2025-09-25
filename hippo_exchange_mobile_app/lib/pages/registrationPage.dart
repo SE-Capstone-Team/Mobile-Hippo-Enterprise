@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
 
+
 typedef RegisterSuccessCallback = void Function();
 
 //Registration page class (Shouldn't interfere with coding)
@@ -72,10 +73,10 @@ class RegistrationPage extends StatefulWidget {
       //endregion
 
 
-      setState(() {
-        _loading = true;
-        _error = null;
-      });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
       //region connection to firebase
       try{
@@ -106,78 +107,167 @@ class RegistrationPage extends StatefulWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        title: Text(
+          'Hippo Exchange',
+          style: TextStyle(
+            shadows: [
+              Shadow(
+                blurRadius: 10.0,
+                color: Colors.black,
+                offset: Offset(0, 0.3),
+              ),
+            ],
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Hippo Exchange - Register",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha:0.4),
-                      offset: const Offset(2, 2),
-                      blurRadius: 3,
+        child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 350),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 10),
+                  Center(
+                    child: Image.asset(
+                      'assets/images/HippoExchangeLogo.png',
+                      height: 180, // make it bigger
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Display Name
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Display Name",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      hintText: "Enter your name",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Email
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Email",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      hintText: "Enter your email",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Password
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Password",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: "Enter password",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Confirm Password
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Confirm Password",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: confirmController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: "Re-enter password",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Register button
+                  if (_loading)
+                    const Center(child: CircularProgressIndicator())
+                  else
+                    SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey[800],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _handleRegister,
+                        child: const Text(
+                          "Register",
+                          style: TextStyle(color: Colors.white, fontSize: 20),
+                        ),
+                      ),
+                    ),
+
+                  // Error message
+                  if (_error != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 40),
 
-              // Example registration fields
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: "Display Name",
-                  border: OutlineInputBorder(),
-                ),
+                  const SizedBox(height: 20),
+                ],
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              TextField(
-                controller: confirmController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: "Confirm Password",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 24),
-              if (_loading)
-                const CircularProgressIndicator()
-              else
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _handleRegister,
-                    child: const Text("Register"),
-                  ),
-                ),
-              if (_error != null) ...[
-                const SizedBox(height: 10),
-                Text(_error!, style: const TextStyle(color: Colors.red)),
-              ],
-            ],
-          ),
+            ),
         ),
       ),
     );

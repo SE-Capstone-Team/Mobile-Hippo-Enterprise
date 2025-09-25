@@ -5,9 +5,12 @@ import 'package:firebase_core/firebase_core.dart';
 class AuthService {
   //shortcuts to call
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final _db = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'inventory-db');
-  CollectionReference<Map<String, dynamic>> get _items => _db.collection('items');//region Inventory Process
-
+  final _db = FirebaseFirestore.instanceFor(
+    app: Firebase.app(),
+    databaseId: 'inventory-db',
+  );
+  CollectionReference<Map<String, dynamic>> get _items =>
+      _db.collection('items'); //region Inventory Process
 
   // region login and logout process
   Future<UserCredential> emailsignin({
@@ -19,28 +22,30 @@ class AuthService {
       password: password,
     );
     final uid = cred.user!.uid;
-    final profile = await _db.collection('profiles').doc(
-        uid).get();
+    final profile = await _db.collection('profiles').doc(uid).get();
     return cred;
   }
 
   Future<void> signOut() => _auth.signOut();
 
   Stream<User?> get authState => _auth.authStateChanges();
-// endregion
+  // endregion
 
- //region register process
+  //region register process
   Future<UserCredential> register({
     required String email,
     required String password,
-    String? displayName
+    String? displayName,
   }) async {
-    final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    final cred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
     if (displayName != null && displayName.isNotEmpty) {
       await cred.user!.updateDisplayName(displayName);
     }
     await _db.collection('profiles').doc(cred.user!.uid).set({
-      'email':email,
+      'email': email,
       'displayName': displayName ?? '',
       'createdAt': FieldValue.serverTimestamp(),
       'roles': ['user'],
@@ -50,7 +55,7 @@ class AuthService {
     return cred;
   }
 
- //endregion
+  //endregion
 
   //region Inventory Process
   Future<DocumentReference> addItem({
@@ -58,8 +63,8 @@ class AuthService {
     required String sku,
     double? unitCost,
     String? location,
-    String? category
-}) async {
+    String? category,
+  }) async {
     //this what we grab
     final data = {
       'name': name,
@@ -70,18 +75,15 @@ class AuthService {
     };
     return await _items.add(data);
   }
+
   //delete
   Future<void> deleteItem(String id) async {
     await _items.doc(id).delete();
   }
+
   //update
   Future<void> updateItem(String id, Map<String, dynamic> updates) async {
     updates['updatedAt'] = FieldValue.serverTimestamp();
     await _db.collection('items').doc(id).set(updates, SetOptions(merge: true));
   } //endregion
-
-
 }
-
-
-

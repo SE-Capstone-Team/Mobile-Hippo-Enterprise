@@ -42,14 +42,20 @@ class LentItemRow extends StatelessWidget {
                       Expanded(
                         child: Text(
                           item.name,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         item.timeAgo,
-                        style: const TextStyle(fontSize: 14, color: Colors.black54),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                        ),
                       ),
                     ],
                   ),
@@ -82,53 +88,30 @@ class LentItem {
   });
 }
 
-class Lendingpage extends StatefulWidget{
-    const Lendingpage({super.key});
+class Lendingpage extends StatefulWidget {
+  const Lendingpage({super.key});
 
   @override
   State<Lendingpage> createState() => _LendingPageState();
-
 }
-
-
-
 
 class _LendingPageState extends State<Lendingpage> {
   // Simulate fetching from a database (replace with your DB logic)
-  var fltCreditCount = 0; // this represents the credits at the bottom of the page
+  var fltCreditCount =
+      0; // this represents the credits at the bottom of the page
   Future<List<LentItem>> fetchLentItems() async {
     await Future.delayed(const Duration(seconds: 1));
     return [
-      LentItem(
-        imageUrl: '',
-        name: 'Drill',
-        borrower: 'Alice',
-        timeAgo: '2d',
-      ),
+      LentItem(imageUrl: '', name: 'Drill', borrower: 'Alice', timeAgo: '2d'),
       LentItem(
         imageUrl: '',
         name: 'Lawn Mower',
         borrower: 'Bob',
         timeAgo: '1w',
       ),
-      LentItem(
-        imageUrl: '',
-        name: 'Bike',
-        borrower: 'Charlie',
-        timeAgo: '3w',
-      ),
-      LentItem(
-        imageUrl: '',
-        name: 'Tent',
-        borrower: 'Dana',
-        timeAgo: '5d',
-      ),
-      LentItem(
-        imageUrl: '',
-        name: 'Projector',
-        borrower: 'Eve',
-        timeAgo: '4h',
-      ),
+      LentItem(imageUrl: '', name: 'Bike', borrower: 'Charlie', timeAgo: '3w'),
+      LentItem(imageUrl: '', name: 'Tent', borrower: 'Dana', timeAgo: '5d'),
+      LentItem(imageUrl: '', name: 'Projector', borrower: 'Eve', timeAgo: '4h'),
     ];
   }
 
@@ -184,7 +167,10 @@ class _LendingPageState extends State<Lendingpage> {
                         ),
                         Expanded(
                           child: ListView.separated(
-                            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 0,
+                              horizontal: 0,
+                            ),
                             itemCount: items.length,
                             separatorBuilder: (context, index) => const Divider(
                               color: Color(0xFFE0E0E0), // Colors.grey[300]
@@ -211,22 +197,21 @@ class _LendingPageState extends State<Lendingpage> {
                   },
                 ),
               ),
-              // bottom box for what i belive is currency 
+              // bottom box for what i belive is currency
               Container(
                 width: double.infinity,
                 height: 75,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(color: Colors.grey.shade400, width: 1.2),
-                  
                 ),
-               // child: Center(child: Text("Currency: $fltCreditCount", style: TextStyle(fontSize: 20)))
+                // child: Center(child: Text("Currency: $fltCreditCount", style: TextStyle(fontSize: 20)))
               ),
             ],
           ),
         ),
-        // LIST OF OBJECTS END
 
+        // LIST OF OBJECTS END
       ),
     );
   }

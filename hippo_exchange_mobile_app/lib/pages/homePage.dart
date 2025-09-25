@@ -44,11 +44,12 @@ class _HomePageState extends State<HomePage> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Text('Home Page',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium!
-                        .copyWith(fontSize: 24)),
+                child: Text(
+                  'Home Page',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium!.copyWith(fontSize: 24),
+                ),
               ),
             ),
 
@@ -111,9 +112,13 @@ class _HomePageState extends State<HomePage> {
           NavigationDestination(icon: Icon(Icons.home_outlined), label: ''),
           NavigationDestination(icon: Icon(Icons.block_outlined), label: ''),
           NavigationDestination(
-              icon: Icon(Icons.shopping_cart_outlined), label: ''),
+            icon: Icon(Icons.shopping_cart_outlined),
+            label: '',
+          ),
           NavigationDestination(
-              icon: Icon(Icons.notifications_none_outlined), label: ''),
+            icon: Icon(Icons.notifications_none_outlined),
+            label: '',
+          ),
           NavigationDestination(icon: Icon(Icons.person_outline), label: ''),
         ],
       ),*/
@@ -139,10 +144,9 @@ class SectionHeader extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium!
-                    .copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
             const Icon(Icons.chevron_right_rounded, size: 24),
@@ -178,10 +182,9 @@ class LentCircle extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium!
-                .copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -222,8 +225,10 @@ class BorrowedCard extends StatelessWidget {
                 const SizedBox(height: 10),
 
                 // Meta line
-                Text('Borrowed from: ${item.fromName}',
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  'Borrowed from: ${item.fromName}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
 
                 const SizedBox(height: 4),
 
@@ -232,10 +237,9 @@ class BorrowedCard extends StatelessWidget {
                   item.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium!
-                      .copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w700),
                 ),
 
                 const SizedBox(height: 8),
@@ -243,10 +247,9 @@ class BorrowedCard extends StatelessWidget {
                 // Duration
                 Text(
                   'Borrowed for: ${item.duration}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium!
-                      .copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -281,22 +284,22 @@ class BorrowedItem {
 const demoLent = <LentItem>[
   LentItem(
     imageUrl:
-    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800',
+        'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800',
     caption: 'Global\nCarry-On Spinner',
   ),
   LentItem(
     imageUrl:
-    'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800',
+        'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800',
     caption: 'The Martian –\nHardback',
   ),
   LentItem(
     imageUrl:
-    'https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=800',
+        'https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=800',
     caption: 'Diamond\nNecklace',
   ),
   LentItem(
     imageUrl:
-    'https://images.unsplash.com/photo-1519494080410-f9aa76cb4283?q=80&w=800',
+        'https://images.unsplash.com/photo-1519494080410-f9aa76cb4283?q=80&w=800',
     caption: 'Foldable Baby\nStroller',
   ),
 ];
@@ -304,21 +307,21 @@ const demoLent = <LentItem>[
 const demoBorrowed = <BorrowedItem>[
   BorrowedItem(
     imageUrl:
-    'https://images.unsplash.com/photo-1611463106254-c6b8b3a2a8f1?q=80&w=1200',
+        'https://images.unsplash.com/photo-1611463106254-c6b8b3a2a8f1?q=80&w=1200',
     fromName: '<name>',
     title: "Harbor Freight Engineer's Hammer",
     duration: '1 week',
   ),
   BorrowedItem(
     imageUrl:
-    'https://images.unsplash.com/photo-1520256862855-398228c41684?q=80&w=1200',
+        'https://images.unsplash.com/photo-1520256862855-398228c41684?q=80&w=1200',
     fromName: '<name>',
     title: "Justin Men's Conductor 8\" Lace-Up Boots",
     duration: '6 days',
   ),
   BorrowedItem(
     imageUrl:
-    'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200',
+        'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200',
     fromName: '<name>',
     title: 'Hercules Compact Drill Kit',
     duration: '3 days',

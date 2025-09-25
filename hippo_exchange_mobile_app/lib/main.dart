@@ -9,17 +9,14 @@ import 'Firebase_service.dart';
 import 'pages/lendingPage.dart';
 import 'pages/mainPostLogin.dart';
 
-// MAIN CALL TO START THE APP 
+// MAIN CALL TO START THE APP
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
     const MaterialApp(debugShowCheckedModeBanner: false, home: BasePage()),
   );
 }
-
 
 class BasePage extends StatefulWidget {
   const BasePage({super.key});
@@ -36,7 +33,6 @@ class _BasePageState extends State<BasePage> {
       _currentIndex = 1;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -91,5 +87,3 @@ class _BasePageState extends State<BasePage> {
     );
   }
 }
-
-
