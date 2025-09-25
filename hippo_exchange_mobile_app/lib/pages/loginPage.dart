@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/pages/mainPostLogin.dart';
 
 typedef RegisterCallback = void Function();
 typedef LoginSuccessCallback = void Function();
@@ -8,9 +10,6 @@ class LoginPage extends StatefulWidget {
   const LoginPage({super.key, this.onRegisterTap, this.onLoginSuccess});
   final RegisterCallback? onRegisterTap;
   final LoginSuccessCallback? onLoginSuccess;
-
-  LoginPage({Key? key, this.onRegisterTap, this.onLoginSuccess})
-    : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -22,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _loading = false;
   String? _error;
+
 
   //removes local variables when done sending to the server
   @override

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
 // Widget for a single lent item row
 

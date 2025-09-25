@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
 
 typedef RegisterSuccessCallback = void Function();
-
 //Registration page class (Shouldn't interfere with coding)
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key, this.onRegisterSuccess});
