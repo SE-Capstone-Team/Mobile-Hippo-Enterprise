@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
 
-
-
-
-
 typedef RegisterCallback = void Function();
 typedef LoginSuccessCallback = void Function();
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key, this.onRegisterTap, this.onLoginSuccess});
   final RegisterCallback? onRegisterTap;
   final LoginSuccessCallback? onLoginSuccess;
-
-  LoginPage({Key? key, this.onRegisterTap, this.onLoginSuccess}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
