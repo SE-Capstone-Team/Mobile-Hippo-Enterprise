@@ -14,6 +14,9 @@ class RegistrationPage extends StatefulWidget {
     final passwordController = TextEditingController();
     final confirmController = TextEditingController();
 
+    //Used for being able to view password while entering
+    bool _isPasswordVisible = false;
+    bool _isConfirmPasswordVisible = false;
     //important states that lets the app and client know progress
     bool _loading = false;
     String? _error;
@@ -123,6 +126,7 @@ class RegistrationPage extends StatefulWidget {
         child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 350),
+              child:SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -190,7 +194,7 @@ class RegistrationPage extends StatefulWidget {
                   const SizedBox(height: 8),
                   TextField(
                     controller: passwordController,
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       hintText: "Enter password",
                       border: OutlineInputBorder(
@@ -198,6 +202,17 @@ class RegistrationPage extends StatefulWidget {
                       ),
                       filled: true,
                       fillColor: Colors.grey[50],
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          // Update the state for the confirm password field
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -213,7 +228,7 @@ class RegistrationPage extends StatefulWidget {
                   const SizedBox(height: 8),
                   TextField(
                     controller: confirmController,
-                    obscureText: true,
+                    obscureText: !_isConfirmPasswordVisible,
                     decoration: InputDecoration(
                       hintText: "Re-enter password",
                       border: OutlineInputBorder(
@@ -221,6 +236,18 @@ class RegistrationPage extends StatefulWidget {
                       ),
                       filled: true,
                       fillColor: Colors.grey[50],
+                      // Add the visibility toggle button
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          // Update the state for the confirm password field
+                          setState(() {
+                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -258,6 +285,7 @@ class RegistrationPage extends StatefulWidget {
 
                   const SizedBox(height: 20),
                 ],
+              ),
               ),
             ),
         ),

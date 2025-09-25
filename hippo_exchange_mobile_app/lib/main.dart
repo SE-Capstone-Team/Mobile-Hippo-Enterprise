@@ -71,7 +71,9 @@ class _BasePageState extends State<BasePage> {
           });
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.login), label: "Login"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.login),
+              label: "Login"),
           BottomNavigationBarItem(
             icon: Icon(Icons.app_registration),
             label: "Registration",

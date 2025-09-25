@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hippo_exchange_mobile_app/pages/borrowingPage.dart';
+import 'package:hippo_exchange_mobile_app/pages/lendingPage.dart';
+
 
 void main() => runApp(const BorrowlyApp());
 
@@ -45,7 +48,7 @@ class _HomePageState extends State<HomePage> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                 child: Text(
-                  'Home Page',
+                  'Hippo Exchange',
                   style: Theme.of(
                     context,
                   ).textTheme.titleMedium!.copyWith(fontSize: 24),
@@ -59,6 +62,7 @@ class _HomePageState extends State<HomePage> {
                 title: 'Items Lent',
                 onTap: () {
                   // TODO: push to items lent screen
+
                 },
               ),
             ),
@@ -101,26 +105,6 @@ class _HomePageState extends State<HomePage> {
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
           ],
         ),
-      ),
-
-      // ---- Bottom Navigation ----
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tabIndex,
-        onDestinationSelected: (i) => setState(() => _tabIndex = i),
-        height: 72,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: ''),
-          NavigationDestination(icon: Icon(Icons.block_outlined), label: ''),
-          NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            label: '',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_none_outlined),
-            label: '',
-          ),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: ''),
-        ],
       ),
     );
   }
@@ -173,7 +157,7 @@ class LentCircle extends StatelessWidget {
               width: 76,
               height: 76,
               color: const Color(0xFFF2F2F2),
-              child: Image.network(item.imageUrl, fit: BoxFit.cover),
+              child: Image.asset(item.imageUrl, fit: BoxFit.cover),
             ),
           ),
           const SizedBox(height: 8),
@@ -219,7 +203,7 @@ class BorrowedCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   child: AspectRatio(
                     aspectRatio: 4 / 3,
-                    child: Image.network(item.imageUrl, fit: BoxFit.cover),
+                    child: Image.asset(item.imageUrl, fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -284,22 +268,22 @@ class BorrowedItem {
 const demoLent = <LentItem>[
   LentItem(
     imageUrl:
-        'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800',
+        'assets/images/Carryon Spinner.webp',
     caption: 'Global\nCarry-On Spinner',
   ),
   LentItem(
     imageUrl:
-        'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800',
+        'assets/images/TheMartian.jpg',
     caption: 'The Martian –\nHardback',
   ),
   LentItem(
     imageUrl:
-        'https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=800',
+        'assets/images/Diamond Necklace.webp',
     caption: 'Diamond\nNecklace',
   ),
   LentItem(
     imageUrl:
-        'https://images.unsplash.com/photo-1519494080410-f9aa76cb4283?q=80&w=800',
+        'assets/images/Stroller.webp',
     caption: 'Foldable Baby\nStroller',
   ),
 ];
@@ -307,22 +291,22 @@ const demoLent = <LentItem>[
 const demoBorrowed = <BorrowedItem>[
   BorrowedItem(
     imageUrl:
-        'https://images.unsplash.com/photo-1611463106254-c6b8b3a2a8f1?q=80&w=1200',
-    fromName: '<name>',
+        'assets/images/Hammer.webp',
+    fromName: 'Dexter',
     title: "Harbor Freight Engineer's Hammer",
     duration: '1 week',
   ),
   BorrowedItem(
     imageUrl:
-        'https://images.unsplash.com/photo-1520256862855-398228c41684?q=80&w=1200',
-    fromName: '<name>',
-    title: "Justin Men's Conductor 8\" Lace-Up Boots",
+        'assets/images/boots.jpg',
+    fromName: 'Jesus',
+    title: "Justin Men's Conductor 8\" Boots",
     duration: '6 days',
   ),
   BorrowedItem(
     imageUrl:
-        'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200',
-    fromName: '<name>',
+        'assets/images/Drill.webp',
+    fromName: 'Hannah',
     title: 'Hercules Compact Drill Kit',
     duration: '3 days',
   ),

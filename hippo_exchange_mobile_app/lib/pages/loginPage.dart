@@ -18,10 +18,29 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _isPasswordVisible = true;
 
   bool _loading = false;
   String? _error;
+// Added this method to hard code credentials in
+  void _handleHardcodedLogin() {
+    const String hardcodedEmail = 'tester@test.com';
+    const String hardcodedPassword = 'Testing1!';
 
+    if (emailController.text.toLowerCase() == hardcodedEmail &&
+        passwordController.text == hardcodedPassword) {
+      // Credentials match, trigger success
+      setState(() => _error = null);
+      if (widget.onLoginSuccess != null) {
+        widget.onLoginSuccess!();
+      }
+    } else {
+      // Credentials do not match, show an error
+      setState(() {
+        _error = 'Invalid email or password.';
+      });
+    }
+  }
   //removes local variables when done sending to the server
   @override
   void dispose() {
@@ -64,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           title: Text(
-            'Hippo Enterprise',
+            'Hippo Exchange',
             style: TextStyle(
               shadows: [
                 Shadow(
@@ -81,6 +100,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
 
         body: Center(
+          child: SingleChildScrollView(
           child: Container(
             alignment: Alignment.topCenter,
             width: 350,
@@ -138,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Password field box
                 TextField(
                   controller: passwordController,
-                  obscureText: true,
+                  obscureText: _isPasswordVisible,
                   decoration: InputDecoration(
                     hintText: "Enter Password",
                     border: OutlineInputBorder(
@@ -146,6 +166,18 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        // Choose the icon based on the visibility state
+                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        // Update the state to toggle visibility
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -162,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: _handleLogin,
+                      onPressed: _handleHardcodedLogin,//_handleLogin,
                       child: Text(
                         "Login",
                         style: TextStyle(color: Colors.white, fontSize: 20),
@@ -177,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Text below login field
                 if (!_loading)
                   Text(
-                    "- Dont Have and Account? -",
+                    "- Don't Have an Account? -",
                     style: TextStyle(
                       //decoration: TextDecoration,
                       color: Colors.grey[700],
@@ -208,6 +240,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 10),
               ],
             ),
+          ),
           ),
         ),
       ),

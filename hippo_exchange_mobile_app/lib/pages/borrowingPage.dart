@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 // Widget for a single borrowed item row
 class BorrowedItemRow extends StatelessWidget {
   final BorrowedItem item;
-  const BorrowedItemRow({Key? key, required this.item}) : super(key: key);
+  const BorrowedItemRow({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -100,24 +100,32 @@ class _BorrowingPageState extends State<BorrowingPage> {
   Future<List<BorrowedItem>> fetchBorrowedItems() async {
     await Future.delayed(const Duration(seconds: 1));
     return [
-      BorrowedItem(imageUrl: '', name: 'Drill', lender: 'Alice', timeAgo: '2d'),
+      BorrowedItem(imageUrl: 'assets/images/Hammer.webp',
+          name: 'Drill',
+          lender: 'Dexter',
+          timeAgo: '2d'
+      ),
       BorrowedItem(
-        imageUrl: '',
-        name: 'Lawn Mower',
-        lender: 'Bob',
+        imageUrl: 'assets/images/boots.jpg',
+        name: 'Justin Men\'s Conductor 8\" Boots',
+        lender: 'Jesus',
         timeAgo: '1w',
       ),
       BorrowedItem(
-        imageUrl: '',
-        name: 'Bike',
-        lender: 'Charlie',
+        imageUrl: 'assets/images/Drill.webp',
+        name: 'Hercules Compact Drill Kit',
+        lender: 'Hannah',
         timeAgo: '3w',
       ),
-      BorrowedItem(imageUrl: '', name: 'Tent', lender: 'Dana', timeAgo: '5d'),
+      BorrowedItem(imageUrl: 'assets/images/Tent.webp',
+          name: 'Tent',
+          lender: 'Dana',
+          timeAgo: '5d'
+      ),
       BorrowedItem(
-        imageUrl: '',
-        name: 'Projector',
-        lender: 'Eve',
+        imageUrl: 'assets/images/Stapler.jpg',
+        name: 'Red Swingline Stapler',
+        lender: 'Milton',
         timeAgo: '4h',
       ),
     ];
@@ -126,6 +134,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: Colors.white,
         // APP BAR THAT CONTAINS THE TITLE

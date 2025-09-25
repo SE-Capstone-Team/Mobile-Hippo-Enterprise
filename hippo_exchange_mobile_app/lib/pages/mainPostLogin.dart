@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/pages/homePage.dart';
 import 'package:hippo_exchange_mobile_app/pages/borrowingPage.dart';
 import 'package:hippo_exchange_mobile_app/pages/lendingPage.dart';
-// import 'package:hippo_exchange_mobile_app/pages/postLoginPages/profilePage.dart'; // Uncomment and implement when ready
+import 'package:hippo_exchange_mobile_app/pages/profilePage.dart'; // Uncomment and implement when ready
 
 class MainPostLoginPage extends StatefulWidget {
-  const MainPostLoginPage({Key? key}) : super(key: key);
+  const MainPostLoginPage({super.key});
 
   @override
   State<MainPostLoginPage> createState() => _MainPostLoginPageState();
@@ -18,7 +18,7 @@ class _MainPostLoginPageState extends State<MainPostLoginPage> {
     HomePage(),
     BorrowingPage(),
     Lendingpage(),
-    // ProfilePage(), // Uncomment and implement when ready
+    UserProfilePage(), // Uncomment and implement when ready
     Center(child: Text('Profile Page (Coming Soon)')),
   ];
 
