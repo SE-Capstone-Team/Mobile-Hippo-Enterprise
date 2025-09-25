@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
       ),
 
       // ---- Bottom Navigation ----
-      bottomNavigationBar: NavigationBar(
+      /*bottomNavigationBar: NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (i) => setState(() => _tabIndex = i),
         height: 72,
@@ -121,7 +121,7 @@ class _HomePageState extends State<HomePage> {
           ),
           NavigationDestination(icon: Icon(Icons.person_outline), label: ''),
         ],
-      ),
+      ),*/
     );
   }
 }

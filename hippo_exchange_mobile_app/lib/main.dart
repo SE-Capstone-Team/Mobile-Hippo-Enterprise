@@ -53,7 +53,13 @@ class _BasePageState extends State<BasePage> {
               );
             },
           ),
-          const RegistrationPage(),
+          RegistrationPage(
+            onRegisterSuccess: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const MainPostLoginPage()),
+              );
+            },
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
