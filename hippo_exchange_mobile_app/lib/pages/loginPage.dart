@@ -1,15 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/pages/mainPostLogin.dart';
 
 typedef RegisterCallback = void Function();
 typedef LoginSuccessCallback = void Function();
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key, this.onRegisterTap, this.onLoginSuccess});
   final RegisterCallback? onRegisterTap;
   final LoginSuccessCallback? onLoginSuccess;
-
-  LoginPage({Key? key, this.onRegisterTap, this.onLoginSuccess})
-    : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -22,25 +22,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _loading = false;
   String? _error;
-// Added this method to hard code credentials in
-  void _handleHardcodedLogin() {
-    const String hardcodedEmail = 'tester@test.com';
-    const String hardcodedPassword = 'Testing1!';
 
-    if (emailController.text.toLowerCase() == hardcodedEmail &&
-        passwordController.text == hardcodedPassword) {
-      // Credentials match, trigger success
-      setState(() => _error = null);
-      if (widget.onLoginSuccess != null) {
-        widget.onLoginSuccess!();
-      }
-    } else {
-      // Credentials do not match, show an error
-      setState(() {
-        _error = 'Invalid email or password.';
-      });
-    }
-  }
   //removes local variables when done sending to the server
   @override
   void dispose() {

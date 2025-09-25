@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hippo_exchange_mobile_app/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
+
+typedef RegisterSuccessCallback = void Function();
+//Registration page class (Shouldn't interfere with coding)
 class RegistrationPage extends StatefulWidget {
-  const RegistrationPage({super.key});
+  const RegistrationPage({super.key, this.onRegisterSuccess});
+  final RegisterSuccessCallback? onRegisterSuccess;
 
   @override
   State<RegistrationPage> createState() => _RegisterPageState();
@@ -88,6 +92,9 @@ class RegistrationPage extends StatefulWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Registered successfully!')),
           );
+          if (widget.onRegisterSuccess != null) {
+            widget.onRegisterSuccess!();
+          }
         }
       } on Exception catch (e) {
         setState(() => _error = e.toString());

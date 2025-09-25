@@ -2,6 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+//1.	when loggedin, it should save userid for autologin.
+//2.	add firebase features for inventory and profile.
+//3.	add logout function in profile
+
 class AuthService {
   //shortcuts to call
   final FirebaseAuth _auth = FirebaseAuth.instance;
