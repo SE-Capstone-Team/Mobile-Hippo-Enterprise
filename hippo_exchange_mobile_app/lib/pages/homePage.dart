@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
             ),
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 300, // card height to show image + text like the mock
+                height: 212, // increased to fix overflow (200 + 12)
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
@@ -199,7 +199,7 @@ class BorrowedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 260, // matches mock’s card width ratio
+      width: 173, // increased by 1/3 from 130 to about 173
       child: Card(
         elevation: 0,
         color: Colors.white,
@@ -210,27 +210,27 @@ class BorrowedCard extends StatelessWidget {
             // TODO: open details
           },
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8), // increased padding slightly
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Image
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10), // slightly larger border radius
                   child: AspectRatio(
                     aspectRatio: 4 / 3,
                     child: Image.network(item.imageUrl, fit: BoxFit.cover),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 5), // slightly increased spacing
 
                 // Meta line
                 Text(
-                  'Borrowed from: ${item.fromName}',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  'From: ${item.fromName}',
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 11),
                 ),
 
-                const SizedBox(height: 4),
+                const SizedBox(height: 3), // slightly increased spacing
 
                 // Title (2 lines)
                 Text(
@@ -239,17 +239,17 @@ class BorrowedCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w700),
+                  ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w700, fontSize: 12),
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 3), // slightly increased spacing
 
                 // Duration
                 Text(
-                  'Borrowed for: ${item.duration}',
+                  '${item.duration}',
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
+                  ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600, fontSize: 11),
                 ),
               ],
             ),
