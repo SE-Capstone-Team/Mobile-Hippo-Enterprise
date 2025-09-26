@@ -7,8 +7,6 @@ typedef RegisterSuccessCallback = void Function();
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key, this.onRegisterSuccess});
   final RegisterSuccessCallback? onRegisterSuccess;
-  const RegistrationPage({super.key, this.onRegisterSuccess});
-  final RegisterSuccessCallback? onRegisterSuccess;
 
   @override
   State<RegistrationPage> createState() => _RegisterPageState();
