@@ -21,9 +21,12 @@ class _RegisterPageState extends State<RegistrationPage> {
   final passwordController = TextEditingController();
   final confirmController = TextEditingController();
 
-  //important states that lets the app and client know progress
-  bool _loading = false;
-  String? _error;
+    //Used for being able to view password while entering
+    bool _isPasswordVisible = false;
+    bool _isConfirmPasswordVisible = false;
+    //important states that lets the app and client know progress
+    bool _loading = false;
+    String? _error;
 
   //when finished sending data to firebase, we dispose of data
   //and let firebase do the work.
@@ -192,51 +195,74 @@ class _RegisterPageState extends State<RegistrationPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Password",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: "Enter password",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  // Password
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Password",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: !_isPasswordVisible,
+                    decoration: InputDecoration(
+                      hintText: "Enter password",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          // Update the state for the confirm password field
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-                // Confirm Password
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Confirm Password",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: confirmController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: "Re-enter password",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  // Confirm Password
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Confirm Password",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: confirmController,
+                    obscureText: !_isConfirmPasswordVisible,
+                    decoration: InputDecoration(
+                      hintText: "Re-enter password",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      // Add the visibility toggle button
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          // Update the state for the confirm password field
+                          setState(() {
+                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
                 // Register button
                 if (_loading)

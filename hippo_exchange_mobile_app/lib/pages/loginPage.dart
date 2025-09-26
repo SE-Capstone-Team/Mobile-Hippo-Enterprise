@@ -18,10 +18,10 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool _isPasswordVisible = true;
 
   bool _loading = false;
   String? _error;
-
 
   //removes local variables when done sending to the server
   @override
@@ -65,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           title: Text(
-            'Hippo Enterprise',
+            'Hippo Exchange',
             style: TextStyle(
               shadows: [
                 Shadow(
@@ -82,6 +82,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
 
         body: Center(
+          child: SingleChildScrollView(
           child: Container(
             alignment: Alignment.topCenter,
             width: 350,
@@ -139,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Password field box
                 TextField(
                   controller: passwordController,
-                  obscureText: true,
+                  obscureText: _isPasswordVisible,
                   decoration: InputDecoration(
                     hintText: "Enter Password",
                     border: OutlineInputBorder(
@@ -147,6 +148,18 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        // Choose the icon based on the visibility state
+                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        // Update the state to toggle visibility
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -193,6 +206,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 10),
               ],
             ),
+          ),
           ),
         ),
       ),

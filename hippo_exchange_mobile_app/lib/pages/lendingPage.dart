@@ -5,7 +5,7 @@ import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
 class LentItemRow extends StatelessWidget {
   final LentItem item;
-  const LentItemRow({Key? key, required this.item}) : super(key: key);
+  const LentItemRow({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -102,22 +102,23 @@ class _LendingPageState extends State<Lendingpage> {
   Future<List<LentItem>> fetchLentItems() async {
     await Future.delayed(const Duration(seconds: 1));
     return [
-      LentItem(imageUrl: '', name: 'Drill', borrower: 'Alice', timeAgo: '2d'),
+      LentItem(imageUrl: 'assets/images/Carryon Spinner.webp', name: 'Global Carry-On Spinner', borrower: 'Alice', timeAgo: '2d'),
       LentItem(
-        imageUrl: '',
-        name: 'Lawn Mower',
+        imageUrl: 'assets/images/TheMartian.jpg',
+        name: 'The Martian -Hardback',
         borrower: 'Bob',
         timeAgo: '1w',
       ),
-      LentItem(imageUrl: '', name: 'Bike', borrower: 'Charlie', timeAgo: '3w'),
-      LentItem(imageUrl: '', name: 'Tent', borrower: 'Dana', timeAgo: '5d'),
-      LentItem(imageUrl: '', name: 'Projector', borrower: 'Eve', timeAgo: '4h'),
+      LentItem(imageUrl: 'assets/images/Diamond Necklace.webp', name: 'Diamond Necklace', borrower: 'Charlie', timeAgo: '3w'),
+      LentItem(imageUrl: 'assets/images/Stroller.webp', name: 'Foldable Baby Stroller', borrower: 'Dana', timeAgo: '5d'),
+      LentItem(imageUrl: 'assets/images/projector.jpg', name: 'Projector', borrower: 'Eve', timeAgo: '4h'),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: Colors.white,
         // APP BAR THAT CONTAINS THE TITLE
