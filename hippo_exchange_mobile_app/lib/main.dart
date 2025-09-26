@@ -54,6 +54,12 @@ class _BasePageState extends State<BasePage> {
             },
           ),
           RegistrationPage(
+
+            onLoginTap: () {
+              setState(() {
+                _currentIndex = 0;
+              });
+            },
             onRegisterSuccess: () {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => const MainPostLoginPage()),
@@ -62,28 +68,28 @@ class _BasePageState extends State<BasePage> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        currentIndex: _currentIndex,
-        selectedItemColor: Colors.black,
-        selectedIconTheme: IconThemeData(color: Colors.blueGrey[800]),
-        selectedLabelStyle: const TextStyle(fontSize: 15),
-        unselectedItemColor: Colors.black,
-        unselectedLabelStyle: const TextStyle(fontSize: 15),
-        unselectedIconTheme: IconThemeData(color: Colors.blueGrey[800]),
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.login), label: "Login"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.app_registration),
-            label: "Registration",
-          ),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   backgroundColor: Colors.white,
+      //   currentIndex: _currentIndex,
+      //   selectedItemColor: Colors.black,
+      //   selectedIconTheme: IconThemeData(color: Colors.blueGrey[800]),
+      //   selectedLabelStyle: const TextStyle(fontSize: 15),
+      //   unselectedItemColor: Colors.black,
+      //   unselectedLabelStyle: const TextStyle(fontSize: 15),
+      //   unselectedIconTheme: IconThemeData(color: Colors.blueGrey[800]),
+      //   onTap: (index) {
+      //     setState(() {
+      //       _currentIndex = index;
+      //     });
+      //   },
+      //   items: const [
+      //     BottomNavigationBarItem(icon: Icon(Icons.login), label: "Login"),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.app_registration),
+      //       label: "Registration",
+      //     ),
+      //   ],
+      // ),
     );
   }
 }

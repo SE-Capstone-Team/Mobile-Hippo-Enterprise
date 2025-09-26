@@ -173,38 +173,22 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 10),
                   Text(_error!, style: const TextStyle(color: Colors.red)),
                 ],
-
+                const SizedBox(height: 15),
                 // Text below login field
                 if (!_loading)
-                  Text(
-                    "- Dont Have and Account? -",
+                  TextButton(
+                    onPressed: widget.onRegisterTap,
+                    child:Text( "- Need to create an account? -",
                     style: TextStyle(
                       //decoration: TextDecoration,
                       color: Colors.grey[700],
                       fontSize: 16,
                     ),
-                  ),
-                const SizedBox(height: 15),
-
-                // Registration button
-                if (!_loading)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueGrey[800],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: widget.onRegisterTap,
-                      child: Text(
-                        "Register",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
                     ),
+                    
                   ),
+             
+
                 const SizedBox(height: 10),
               ],
             ),

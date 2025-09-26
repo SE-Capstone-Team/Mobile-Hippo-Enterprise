@@ -6,8 +6,9 @@ typedef RegisterSuccessCallback = void Function();
 
 //Registration page class (Shouldn't interfere with coding)
 class RegistrationPage extends StatefulWidget {
-  const RegistrationPage({super.key, this.onRegisterSuccess});
+  const RegistrationPage({super.key, this.onRegisterSuccess, this.onLoginTap});
   final RegisterSuccessCallback? onRegisterSuccess;
+  final VoidCallback? onLoginTap;
 
   @override
   State<RegistrationPage> createState() => _RegisterPageState();
@@ -253,7 +254,18 @@ class _RegisterPageState extends State<RegistrationPage> {
                       ),
                     ),
                   ),
-
+                  // below button text
+                  TextButton(
+                    onPressed: widget.onLoginTap,
+                    child: Text(
+                      "- Already have an account? Login here -",
+                      style: TextStyle(
+                        //decoration: TextDecoration,
+                        color: Colors.grey[700],
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 // Error message
                 if (_error != null) ...[
                   const SizedBox(height: 10),
@@ -263,7 +275,8 @@ class _RegisterPageState extends State<RegistrationPage> {
                     textAlign: TextAlign.center,
                   ),
                 ],
-
+                
+                
                 const SizedBox(height: 20),
               ],
             ),
