@@ -3,8 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
-
-
 class LendingPage extends StatefulWidget {
   const LendingPage({super.key});
   @override
@@ -22,7 +20,6 @@ class _LendingPageState extends State<LendingPage> {
         databaseId: AuthService.kFirestoreDbId
     );
   }
-
   Query<Map<String, dynamic>> _lendQuery() {
     return db.collection('items')
         .where('isActive', isEqualTo: true)
@@ -63,6 +60,7 @@ class _LendingPageState extends State<LendingPage> {
           if (docs.isEmpty) {
             return const Center(child: Text('No items yet.'));
           }
+
 
           return ListView.separated(
               itemCount: docs.length,
