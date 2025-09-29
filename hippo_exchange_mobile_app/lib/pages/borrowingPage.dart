@@ -84,32 +84,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
                   trailing: Wrap(
                     spacing: 8,
                     children: [
-                      IconButton(
-                        tooltip: 'Decrease',
-                        icon: const Icon(Icons.remove),
-                        onPressed: () async {
-                          try {
-                            await _adjustStock(d.id, -1);
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
-                            );
-                          }
-                        },
-                      ),
-                      IconButton(
-                        tooltip: 'Increase',
-                        icon: const Icon(Icons.add),
-                        onPressed: () async {
-                          try {
-                            await _adjustStock(d.id, 1);
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
-                            );
-                          }
-                        },
-                      ),
+                      
                     ],
                   ),
                   //onTap: () {
