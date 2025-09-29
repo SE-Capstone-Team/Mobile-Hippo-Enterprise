@@ -325,3 +325,10 @@ DerivedData/
 # google-services.json
 # Plugins (already resolved through pubspec.yaml)
 .flutter-plugins
+
+.metadata
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Release.xcconfig
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
+test/
