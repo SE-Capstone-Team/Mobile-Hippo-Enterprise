@@ -9,9 +9,10 @@ import 'package:firebase_core/firebase_core.dart';
 class AuthService {
   //shortcuts to call
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  static const String kFirestoreDbId = 'inventory-db';
   final _db = FirebaseFirestore.instanceFor(
     app: Firebase.app(),
-    databaseId: 'inventory-db',
+    databaseId: kFirestoreDbId,
   );
   CollectionReference<Map<String, dynamic>> get _items =>
       _db.collection('items'); //region Inventory Process
