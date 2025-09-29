@@ -17,7 +17,7 @@ class _MainPostLoginPageState extends State<MainPostLoginPage> {
   final List<Widget> _pages = const [
     HomePage(),
     BorrowingPage(),
-    Lendingpage(),
+    LendingPage(),
     // ProfilePage(), // Uncomment and implement when ready
     Center(child: Text('Profile Page (Coming Soon)')),
   ];

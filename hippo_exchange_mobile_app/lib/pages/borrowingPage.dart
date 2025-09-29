@@ -1,13 +1,129 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+
+//tasks
+//Step 1: pull from items database
+//step 2: display information in real time
+//step 3: display images without being locally stored
 
 // Widget for a single borrowed item row
-class BorrowedItemRow extends StatelessWidget {
-  final BorrowedItem item;
-  const BorrowedItemRow({Key? key, required this.item}) : super(key: key);
+class BorrowingPage extends StatefulWidget {
+  const BorrowingPage({super.key});
+  @override
+  State<BorrowingPage> createState() => _BorrowingPageState();
+}
+
+class _BorrowingPageState extends State<BorrowingPage> {
+  late final FirebaseFirestore db;
+
+  void initState() {
+    super.initState();
+    db = FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: AuthService.kFirestoreDbId
+    );
+  }
+
+  Query<Map<String, dynamic>> _BorrowQuery() {
+    return db.collection('items')
+        .where('isActive', isEqualTo: true)
+        .orderBy('name');
+  }
+
+  /// Adjust stock safely (prevents negatives)
+  Future<void> _adjustStock(String docId, int delta) async {
+    await db.runTransaction((txn) async {
+      final ref = db.collection('items').doc(docId);
+      final snap = await txn.get(ref);
+      if (!snap.exists) throw StateError('Item not found');
+      final data = snap.data()!;
+      final current = (data['quantity'] ?? 0) as int;
+      final next = current + delta;
+      if (next < 0) throw StateError('Stock cannot go negative.');
+      txn.update(ref, {
+        'quantity': next,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Scaffold(
+      appBar: AppBar(title: const Text('Borrowed Items')),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _BorrowQuery().snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final docs = snapshot.data?.docs ?? [];
+          if (docs.isEmpty) {
+            return const Center(child: Text('No items yet.'));
+          }
+
+          return ListView.separated(
+              itemCount: docs.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, i) {
+                final d = docs[i];
+                final m = d.data();
+                final name = (m['name'] ?? '') as String;
+                final sku = (m['sku'] ?? '') as String;
+                final qty = (m['quantity'] ?? 0) as int;
+
+                return ListTile(
+                  title: Text(name,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text('SKU: $sku   •   Qty: $qty'),
+                  trailing: Wrap(
+                    spacing: 8,
+                    children: [
+                      IconButton(
+                        tooltip: 'Decrease',
+                        icon: const Icon(Icons.remove),
+                        onPressed: () async {
+                          try {
+                            await _adjustStock(d.id, -1);
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        },
+                      ),
+                      IconButton(
+                        tooltip: 'Increase',
+                        icon: const Icon(Icons.add),
+                        onPressed: () async {
+                          try {
+                            await _adjustStock(d.id, 1);
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  //onTap: () {
+                  // optional: open details page
+                  //};
+                );
+              }
+          );
+        },
+      ),
+    );
+  }
+}
+    /*return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
       child: SizedBox(
         height: 64,
@@ -19,14 +135,14 @@ class BorrowedItemRow extends StatelessWidget {
               height: 48,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: item.imageUrl.isEmpty
+                child: .imageUrl.isEmpty
                     ? const Icon(Icons.image, size: 40, color: Colors.grey)
                     : Image.asset(
-                        item.imageUrl,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                      ),
+                  item.imageUrl,
+                  width: 48,
+                  height: 48,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -70,157 +186,4 @@ class BorrowedItemRow extends StatelessWidget {
       ),
     );
   }
-}
-
-// Model for a borrowed item that will be pulled from DB
-class BorrowedItem {
-  final String imageUrl;
-  final String name;
-  final String lender;
-  final String timeAgo;
-  BorrowedItem({
-    required this.imageUrl,
-    required this.name,
-    required this.lender,
-    required this.timeAgo,
-  });
-}
-
-class BorrowingPage extends StatefulWidget {
-  const BorrowingPage({super.key});
-
-  @override
-  State<BorrowingPage> createState() => _BorrowingPageState();
-}
-
-class _BorrowingPageState extends State<BorrowingPage> {
-  // Simulate fetching from a database (replace with your DB logic)
-  var fltCreditCount =
-      0; // this represents the credits at the bottom of the page
-  Future<List<BorrowedItem>> fetchBorrowedItems() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      BorrowedItem(imageUrl: '', name: 'Drill', lender: 'Alice', timeAgo: '2d'),
-      BorrowedItem(
-        imageUrl: '',
-        name: 'Lawn Mower',
-        lender: 'Bob',
-        timeAgo: '1w',
-      ),
-      BorrowedItem(
-        imageUrl: '',
-        name: 'Bike',
-        lender: 'Charlie',
-        timeAgo: '3w',
-      ),
-      BorrowedItem(imageUrl: '', name: 'Tent', lender: 'Dana', timeAgo: '5d'),
-      BorrowedItem(
-        imageUrl: '',
-        name: 'Projector',
-        lender: 'Eve',
-        timeAgo: '4h',
-      ),
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.white,
-        // APP BAR THAT CONTAINS THE TITLE
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: Align(
-            child: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0.5,
-              titleSpacing: 20,
-              // PAGE TITLE
-              title: const Text(
-                "Borrowing",
-                style: TextStyle(fontSize: 40, color: Colors.black),
-                textAlign: TextAlign.left,
-              ),
-              iconTheme: const IconThemeData(color: Colors.black),
-            ),
-          ),
-        ),
-
-        // LIST OF BORROWED OBJECTS START
-        body: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              const SizedBox(height: 20), // Space between app bar and list
-              Expanded(
-                child: FutureBuilder<List<BorrowedItem>>(
-                  future: fetchBorrowedItems(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No items borrowed.'));
-                    }
-                    final items = snapshot.data!;
-                    return Column(
-                      children: [
-                        const Divider(
-                          color: Color(0xFFE0E0E0), // Colors.grey[300]
-                          thickness: 1.2,
-                          height: 0,
-                          indent: 0,
-                          endIndent: 0,
-                        ),
-                        Expanded(
-                          child: ListView.separated(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 0,
-                              horizontal: 0,
-                            ),
-                            itemCount: items.length,
-                            separatorBuilder: (context, index) => const Divider(
-                              color: Color(0xFFE0E0E0), // Colors.grey[300]
-                              thickness: 1.2,
-                              height: 0,
-                              indent: 16,
-                              endIndent: 16,
-                            ),
-                            itemBuilder: (context, index) {
-                              final item = items[index];
-                              return BorrowedItemRow(item: item);
-                            },
-                          ),
-                        ),
-                        const Divider(
-                          color: Color(0xFFE0E0E0), // Colors.grey[300]
-                          thickness: 1.2,
-                          height: 0,
-                          indent: 0,
-                          endIndent: 0,
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              // bottom box for what i belive is currency
-              Container(
-                width: double.infinity,
-                height: 75,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade400, width: 1.2),
-                ),
-                // child: Center(child: Text("Currency: $fltCreditCount", style: TextStyle(fontSize: 20)))
-              ),
-            ],
-          ),
-        ),
-
-        // LIST OF OBJECTS END
-      ),
-    );
-  }
-}
+}*/
