@@ -64,18 +64,26 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
-          title: Text(
-            'Hippo Exchange',
-            style: TextStyle(
-              shadows: [
-                Shadow(
-                  blurRadius: 10.0,
-                  color: Colors.black,
-                  offset: Offset(0, 0.3),
+          title: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Hippo ',
+                  style: TextStyle(
+                    fontSize: 40.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                TextSpan(
+                  text: 'Exchange',
+                  style: TextStyle(
+                    fontSize: 40.0,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF93b9e1),
+                  ),
                 ),
               ],
-              fontSize: 40.0, // Adjust the font size as needed
-              fontWeight: FontWeight.bold,
             ),
           ),
           centerTitle: true,
@@ -85,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
           child: SingleChildScrollView(
           child: Container(
             alignment: Alignment.topCenter,
-            width: 350,
+            width: 365,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               //border: Border.all(color: Colors.blueGrey, width: 1.5), // used for testing container size
@@ -101,88 +109,104 @@ class _LoginPageState extends State<LoginPage> {
                     height: 250, // make it bigger
                   ),
                 ),
-                //const SizedBox(height: 150),
+                const SizedBox(height: 30),
 
-                // Username text above field
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Email",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                // Card containing login fields
+                Card(
+                  elevation: 4,
+                  color: Color(0xFF93b9e1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ),
-                const SizedBox(height: 8),
-
-                // Username text field
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    hintText: "Enter Email",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Password text above field
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Password",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Password field box
-                TextField(
-                  controller: passwordController,
-                  obscureText: _isPasswordVisible,
-                  decoration: InputDecoration(
-                    hintText: "Enter Password",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        // Choose the icon based on the visibility state
-                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        // Update the state to toggle visibility
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                if (_loading)
-                  const CircularProgressIndicator()
-                else
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueGrey[800],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        // Username text above field
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Email",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                          ),
                         ),
-                      ),
-                      onPressed: _handleLogin,
-                      child: Text(
-                        "Login",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
+                        const SizedBox(height: 8),
+
+                        // Username text field
+                        TextField(
+                          controller: emailController,
+                          decoration: InputDecoration(
+                            hintText: "Enter Email",
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Password text above field
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Password",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Password field box
+                        TextField(
+                          controller: passwordController,
+                          obscureText: _isPasswordVisible,
+                          decoration: InputDecoration(
+                            hintText: "Enter Password",
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                // Choose the icon based on the visibility state
+                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                // Update the state to toggle visibility
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        if (_loading)
+                          const CircularProgressIndicator(color: Colors.white)
+                        else
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Color(0xFF93b9e1),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: _handleLogin,
+                              child: Text(
+                                "Login",
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
+                ),
                 if (_error != null) ...[
                   const SizedBox(height: 10),
                   Text(_error!, style: const TextStyle(color: Colors.red)),

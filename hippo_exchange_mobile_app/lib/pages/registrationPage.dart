@@ -117,18 +117,26 @@ class _RegisterPageState extends State<RegistrationPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: true,
-        title: Text(
-          'Hippo Exchange',
-          style: TextStyle(
-            shadows: [
-              Shadow(
-                blurRadius: 10.0,
-                color: Colors.black,
-                offset: Offset(0, 0.3),
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Hippo ',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              TextSpan(
+                text: 'Exchange',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF93b9e1),
+                ),
               ),
             ],
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
           ),
         ),
       ),
