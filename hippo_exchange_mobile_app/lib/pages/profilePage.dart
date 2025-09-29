@@ -1,7 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+
+typedef LogoutCallback = void Function();
+
 
 class UserProfilePage extends StatefulWidget {
-  const UserProfilePage({super.key});
+  const UserProfilePage({super.key, this.onLogoutSuccess, /*this.onLogoutTap*/});
+  final LogoutCallback? onLogoutSuccess;
+  //final LogoutTap? onLogoutTap;
+
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();
@@ -9,6 +17,33 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   bool _isEditing = false;
+
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _handleLogout() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await AuthService().signOut();
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Logout Successful!')));
+        if (widget.onLogoutSuccess != null) {
+          widget.onLogoutSuccess!();
+        }
+      }
+    } on Exception catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+
 
   // Example user details
   String name = "John Tester";
@@ -136,6 +171,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
             _buildDisplayTile(Icons.phone, "Phone", phone),
             _buildDisplayTile(Icons.email, "Email", email),
             _buildDisplayTile(Icons.person, "Name", name),
+
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: _handleLogout,
+            )
           ],
         ),
       ),
