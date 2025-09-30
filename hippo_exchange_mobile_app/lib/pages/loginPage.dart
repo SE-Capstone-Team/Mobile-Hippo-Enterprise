@@ -48,7 +48,7 @@ class _LoginPageState extends State<LoginPage>
     _floatingControllers = List.generate(
       _floatingItems.length,
       (index) => AnimationController(
-        duration: Duration(seconds: 8 + (index * 2)),
+        duration: const Duration(seconds: 10), // Same speed for all items
         vsync: this,
       )..repeat(),
     );
