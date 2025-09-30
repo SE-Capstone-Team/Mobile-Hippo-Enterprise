@@ -249,6 +249,7 @@ class _RegisterPageState extends State<RegistrationPage> {
                   TextField(
                     controller: confirmController,
                     obscureText: !_isConfirmPasswordVisible,
+                    onSubmitted: (_) => _handleRegister(), // Submit on Enter
                     decoration: InputDecoration(
                       hintText: "Re-enter password",
                       border: OutlineInputBorder(

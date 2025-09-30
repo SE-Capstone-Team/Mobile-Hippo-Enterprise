@@ -262,6 +262,7 @@ class _LoginPageState extends State<LoginPage>
                         TextField(
                           controller: passwordController,
                           obscureText: _isPasswordVisible,
+                          onSubmitted: (_) => _handleLogin(), // Submit on Enter
                           decoration: InputDecoration(
                             hintText: "Enter Password",
                             border: OutlineInputBorder(
