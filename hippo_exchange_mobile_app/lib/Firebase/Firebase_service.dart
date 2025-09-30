@@ -34,6 +34,24 @@ class AuthService {
   Future<void> signOut() => _auth.signOut();
 
   Stream<User?> get authState => _auth.authStateChanges();
+
+  // Update user profile information
+  Future<void> updateUserProfile({
+    String? displayName,
+  }) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      if (displayName != null) {
+        await user.updateDisplayName(displayName);
+      }
+      
+      // Update additional profile info in Firestore
+      await _db.collection('profiles').doc(user.uid).update({
+        if (displayName != null) 'displayName': displayName,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
   // endregion
 
   //region register process
