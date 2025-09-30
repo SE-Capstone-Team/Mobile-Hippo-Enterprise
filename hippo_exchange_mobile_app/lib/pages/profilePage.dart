@@ -6,10 +6,7 @@ typedef LogoutCallback = void Function();
 
 
 class UserProfilePage extends StatefulWidget {
-  const UserProfilePage({super.key, this.onLogoutSuccess, /*this.onLogoutTap*/});
-  final LogoutCallback? onLogoutSuccess;
-  //final LogoutTap? onLogoutTap;
-
+  const UserProfilePage({super.key});
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();
@@ -18,28 +15,21 @@ class UserProfilePage extends StatefulWidget {
 class _UserProfilePageState extends State<UserProfilePage> {
   bool _isEditing = false;
 
-  bool _loading = false;
-  String? _error;
-
   Future<void> _handleLogout() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
     try {
       await AuthService().signOut();
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Logout Successful!')));
-        if (widget.onLogoutSuccess != null) {
-          widget.onLogoutSuccess!();
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Logout Successful!')),
+        );
+        // AuthGate will automatically handle navigation back to login
       }
-    } on Exception catch (e) {
-      setState(() => _error = e.toString());
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logout failed: ${e.toString()}')),
+        );
+      }
     }
   }
 
@@ -172,11 +162,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
             _buildDisplayTile(Icons.email, "Email", email),
             _buildDisplayTile(Icons.person, "Name", name),
 
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: 'Logout',
-              onPressed: _handleLogout,
-            )
+            const SizedBox(height: 30),
+            
+            // Logout button
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[600],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _handleLogout,
+                icon: const Icon(Icons.logout),
+                label: const Text(
+                  "Logout",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
           ],
         ),
       ),

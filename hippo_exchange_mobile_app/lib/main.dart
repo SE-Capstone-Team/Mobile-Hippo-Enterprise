@@ -17,7 +17,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
-    const MaterialApp(debugShowCheckedModeBanner: false, home: BasePage()/*AuthGate()*/), //uncomment later
+    const MaterialApp(debugShowCheckedModeBanner: false, home: AuthGate()), // Use AuthGate for automatic login/logout handling
   );
 }
 
@@ -69,24 +69,15 @@ class _BasePageState extends State<BasePage> {
                 _currentIndex = 1;
               });
             },
-            onLoginSuccess: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const MainPostLoginPage()),
-              );
-            },
+            // Remove onLoginSuccess callback - AuthGate handles navigation automatically
           ),
           RegistrationPage(
-
             onLoginTap: () {
               setState(() {
                 _currentIndex = 0;
               });
             },
-            onRegisterSuccess: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const MainPostLoginPage()),
-              );
-            },
+            // Remove onRegisterSuccess callback - AuthGate handles navigation automatically
           ),
           /*UserProfilePage(
             onLogoutTap: () {
