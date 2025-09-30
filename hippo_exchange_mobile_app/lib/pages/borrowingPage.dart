@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,12 +12,15 @@ import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 // Widget for a single borrowed item row
 class BorrowingPage extends StatefulWidget {
   const BorrowingPage({super.key});
+
+
   @override
   State<BorrowingPage> createState() => _BorrowingPageState();
 }
 
 class _BorrowingPageState extends State<BorrowingPage> {
   late final FirebaseFirestore db;
+
 
   void initState() {
     super.initState();
@@ -26,10 +30,11 @@ class _BorrowingPageState extends State<BorrowingPage> {
     );
   }
 
-  Query<Map<String, dynamic>> _BorrowQuery() {
+  Stream<QuerySnapshot> _BorrowQuery() {
     return db.collection('items')
-        .where('isActive', isEqualTo: true)
-        .orderBy('name');
+        .where('borrowerRef', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+        .orderBy('startedAt', descending: true)
+        .snapshots();
   }
 
   /// Adjust stock safely (prevents negatives)
@@ -52,8 +57,8 @@ class _BorrowingPageState extends State<BorrowingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Borrowed Items')),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _BorrowQuery().snapshots(),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _BorrowQuery(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -72,23 +77,19 @@ class _BorrowingPageState extends State<BorrowingPage> {
               itemBuilder: (context, i) {
                 final d = docs[i];
                 final m = d.data();
-                final name = (m['name'] ?? '') as String;
-                final sku = (m['sku'] ?? '') as String;
-                final qty = (m['quantity'] ?? 0) as int;
+                final itemName = d['name'] ?? 'unnamed Item';
+                final dueAt = d['dueAt'] ?? '';
+                final ownerName = d['ownerDisplayName'] ?? 'Owner';
+
 
                 return ListTile(
-                  title: Text(name,
-                      style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text('SKU: $sku   •   Qty: $qty'),
-                  trailing: Wrap(
-                    spacing: 8,
-                    children: [
-                      
-                    ],
+                  title: Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text(
+                    dueAt != null
+                        ? 'Borrowed from $ownerName • Due ${dueAt.toLocal().toString().split(' ')[0]}'
+                        : 'Borrowed from $ownerName',
                   ),
-                  //onTap: () {
-                  // optional: open details page
-                  //};
+                  trailing: const Icon(Icons.shopping_bag, color: Colors.blue),
                 );
               }
           );

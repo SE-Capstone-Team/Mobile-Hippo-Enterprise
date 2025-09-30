@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
@@ -20,12 +21,12 @@ class _LendingPageState extends State<LendingPage> {
         databaseId: AuthService.kFirestoreDbId
     );
   }
-  Query<Map<String, dynamic>> _lendQuery() {
+  Stream<QuerySnapshot> _lendQuery() {
     return db.collection('items')
-        .where('isActive', isEqualTo: true)
-        .orderBy('name');
+        .where('ownerRef', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
   }
-
   /// Adjust stock safely (prevents negatives)
   Future<void> _adjustStock(String docId, int delta) async {
     await db.runTransaction((txn) async {
@@ -46,9 +47,9 @@ class _LendingPageState extends State<LendingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('lent Items')),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _lendQuery().snapshots(),
+      appBar: AppBar(title: const Text('Lent Items')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _lendQuery(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -68,23 +69,16 @@ class _LendingPageState extends State<LendingPage> {
               itemBuilder: (context, i) {
                 final d = docs[i];
                 final m = d.data();
-                final name = (m['name'] ?? '') as String;
-                final sku = (m['sku'] ?? '') as String;
-                final qty = (m['quantity'] ?? 0) as int;
-
+                final itemName = d['name'] ?? 'unnamed Item';
+                final isLent = d['isLent'] == true;
                 return ListTile(
-                  title: Text(name,
-                      style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text('SKU: $sku   •   Qty: $qty'),
-                  trailing: Wrap(
-                    spacing: 8,
-                    children: [
-
-                    ],
-                  ),
-                  //onTap: () {
-                  // optional: open details page
-                  //};
+                  title: Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: isLent
+                      ? Text('Currently lent')
+                      : const Text('Available'),
+                  trailing: isLent
+                      ? const Icon(Icons.assignment_return, color: Colors.red)
+                      : const Icon(Icons.check_circle, color: Colors.green),
                 );
               }
           );
