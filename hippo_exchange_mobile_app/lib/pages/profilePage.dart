@@ -83,9 +83,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (_isEditing) {
       // Save changes when switching back from edit mode
       try {
-        // Update local variables
+        // Update local variables (only name since email is read-only)
         name = _nameController.text;
-        email = _emailController.text;
         
         // Update Firebase profile
         await AuthService().updateUserProfile(
@@ -300,7 +299,45 @@ class _UserProfilePageState extends State<UserProfilePage> {
             const SizedBox(height: 30),
             _buildEditField("Name", _nameController),
             const SizedBox(height: 20),
-            _buildEditField("Email", _emailController),
+            // Show email as read-only info
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.1),
+                border: Border.all(color: Colors.white54),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.email, color: Colors.white70, size: 24),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Email (Read-only)",
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
