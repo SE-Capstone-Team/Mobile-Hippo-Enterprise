@@ -230,7 +230,7 @@ class BorrowedCard extends StatelessWidget {
 
                 // Duration
                 Text(
-                  '${item.duration}',
+                  item.duration,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600, fontSize: 11),
