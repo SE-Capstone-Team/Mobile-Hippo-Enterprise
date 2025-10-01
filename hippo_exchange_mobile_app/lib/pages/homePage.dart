@@ -39,11 +39,15 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        centerTitle: false,
-        title: RichText(
+      // Optional AppBar (mock shows just status bar; SafeArea handles it)
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+        SliverToBoxAdapter(
+        child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: RichText(
+
           text: TextSpan(
             children: [
               TextSpan(
@@ -55,7 +59,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               TextSpan(
-                text: 'Exchange: Home',
+
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -65,19 +69,11 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(1.0),
-          child: Container(
-            color: Color(0xFF93b9e1).withOpacity(0.2),
-            height: 1.0,
-          ),
-        ),
       ),
-      body: Container(
-        color: Colors.white,
-        child: CustomScrollView(
-          slivers: [
+    ),
+
+
+
             // ---- Items Lent ----
             SliverToBoxAdapter(
               child: SectionHeader(

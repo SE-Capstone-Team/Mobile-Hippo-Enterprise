@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/pages/addItems.dart';
 
 class LendingPage extends StatefulWidget {
   const LendingPage({super.key});
@@ -47,44 +48,23 @@ class _LendingPageState extends State<LendingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        centerTitle: false,
-        title: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'Hippo ',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              TextSpan(
-                text: 'Exchange: Lending',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF93b9e1),
-                ),
-              ),
-            ],
-          ),
-        ),
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(1.0),
-          child: Container(
-            color: Color(0xFF93b9e1).withOpacity(0.2),
-            height: 1.0,
-          ),
-        ),
-      ),
-      body: Container(
-        color: Colors.white,
-        child: StreamBuilder<QuerySnapshot>(
+
+      appBar: AppBar(title: const Text('Lent Items'),
+          actions: [
+          IconButton(
+          icon: const Icon(Icons.add_box_outlined),
+      tooltip: 'Add Item',
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddItemPage()),
+        );
+      },
+    ),
+    ],),
+      body: StreamBuilder<QuerySnapshot>(
+
+
         stream: _lendQuery(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
