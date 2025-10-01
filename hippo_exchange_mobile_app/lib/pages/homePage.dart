@@ -47,6 +47,7 @@ class _HomePageState extends State<HomePage> {
         child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         child: RichText(
+
           text: TextSpan(
             children: [
               TextSpan(
@@ -58,7 +59,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               TextSpan(
-                text: 'Exchange',
+
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -70,6 +71,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     ),
+
 
 
             // ---- Items Lent ----
@@ -165,12 +167,21 @@ class LentCircle extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ClipOval(
-            child: Container(
-              width: 76,
-              height: 76,
-              color: const Color(0xFFF2F2F2),
-              child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Color(0xFF93b9e1).withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+            child: ClipOval(
+              child: Container(
+                color: const Color(0xFFF2F2F2),
+                child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -212,11 +223,20 @@ class BorrowedCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10), // slightly larger border radius
-                  child: AspectRatio(
-                    aspectRatio: 4 / 3,
-                    child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Color(0xFF93b9e1).withOpacity(0.3),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10), // slightly larger border radius
+                    child: AspectRatio(
+                      aspectRatio: 4 / 3,
+                      child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 5), // slightly increased spacing
@@ -243,7 +263,7 @@ class BorrowedCard extends StatelessWidget {
 
                 // Duration
                 Text(
-                  '${item.duration}',
+                  item.duration,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600, fontSize: 11),

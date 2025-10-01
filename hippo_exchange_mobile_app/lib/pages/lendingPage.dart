@@ -48,6 +48,7 @@ class _LendingPageState extends State<LendingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       appBar: AppBar(title: const Text('Lent Items'),
           actions: [
           IconButton(
@@ -62,6 +63,8 @@ class _LendingPageState extends State<LendingPage> {
     ),
     ],),
       body: StreamBuilder<QuerySnapshot>(
+
+
         stream: _lendQuery(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -96,6 +99,14 @@ class _LendingPageState extends State<LendingPage> {
               }
           );
         },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {},
+        backgroundColor: Color(0xFF1a6ec7),
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Item'),
       ),
     );
   }

@@ -83,9 +83,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (_isEditing) {
       // Save changes when switching back from edit mode
       try {
-        // Update local variables
+        // Update local variables (only name since email is hidden)
         name = _nameController.text;
-        email = _emailController.text;
         
         // Update Firebase profile
         await AuthService().updateUserProfile(
@@ -114,6 +113,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget _buildEditField(String label, TextEditingController controller) {
     return TextField(
       controller: controller,
+      onSubmitted: (_) => _toggleEdit(), // Submit on Enter - acts like save button
       style: const TextStyle(color: Colors.white, fontSize: 18),
       decoration: InputDecoration(
         labelText: label,
@@ -145,6 +145,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: false,
+        elevation: 0,
         title: RichText(
           text: TextSpan(
             children: [
@@ -157,7 +158,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
               ),
               TextSpan(
-                text: 'Exchange',
+                text: 'Exchange: Profile',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -184,6 +185,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Color(0xFF93b9e1).withOpacity(0.2),
+            height: 1.0,
+          ),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -299,8 +307,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
             const SizedBox(height: 30),
             _buildEditField("Name", _nameController),
-            const SizedBox(height: 20),
-            _buildEditField("Email", _emailController),
           ],
         ),
       ),

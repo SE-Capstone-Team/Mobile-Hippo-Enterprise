@@ -22,6 +22,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
   late final FirebaseFirestore db;
 
 
+  @override
   void initState() {
     super.initState();
     db = FirebaseFirestore.instanceFor(
@@ -56,8 +57,44 @@ class _BorrowingPageState extends State<BorrowingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Borrowed Items')),
-      body: StreamBuilder<QuerySnapshot>(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Hippo ',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              TextSpan(
+                text: 'Exchange: Borrowing',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF93b9e1),
+                ),
+              ),
+            ],
+          ),
+        ),
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Color(0xFF93b9e1).withOpacity(0.2),
+            height: 1.0,
+          ),
+        ),
+      ),
+      body: Container(
+        color: Colors.white,
+        child: StreamBuilder<QuerySnapshot>(
         stream: _BorrowQuery(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -94,6 +131,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
               }
           );
         },
+        ),
       ),
     );
   }
