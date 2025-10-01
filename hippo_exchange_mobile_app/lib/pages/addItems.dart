@@ -76,77 +76,87 @@ class _AddItemPageState extends State<AddItemPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Add Item to Lend"),
-        backgroundColor: Color(0xFF93B9E1)
-        ,
+        backgroundColor: const Color(0xFF93B9E1),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: "Item Title",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descController,
-              decoration: const InputDecoration(
-                labelText: "Description",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 4,
-            ),
-            const SizedBox(height: 16),
-
-            // Show selected images
-            _images.isNotEmpty
-                ? Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _images
-                  .map((file) => ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  file,
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight, // fill screen height
                 ),
-              ))
-                  .toList(),
-            )
-                : const Text("No images added yet"),
-            const SizedBox(height: 16),
+                child: IntrinsicHeight(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center, // center vertically
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Image previews
+                      _images.isNotEmpty
+                          ? Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _images
+                            .map((file) => ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            file,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        ))
+                            .toList(),
+                      )
+                          : const Center(child: Text("No images added yet")),
+                      const SizedBox(height: 10),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: _showImageSourceActionSheet,
+                          icon: const Icon(Icons.add_a_photo),
+                          label: const Text("Add Image"),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(
+                          labelText: "Item Title",
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _descController,
+                        decoration: const InputDecoration(
+                          labelText: "Description",
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 4,
+                      ),
+                      const SizedBox(height: 16),
 
-            // Single "Add Image" button
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: _showImageSourceActionSheet,
-                icon: const Icon(Icons.add_a_photo),
-                label: const Text("Add Image"),
 
-              ),
-            ),
-
-            const SizedBox(height: 30),
-            Center(
-              child: ElevatedButton(
-                onPressed: _submitItem,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF93B9E1),
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: _submitItem,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF93B9E1),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 60, vertical: 20),
+                          ),
+                          child: const Text("Submit Item"),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: const Text("Submit Item"),
               ),
-            ),
-          ],
+            );
+          },
         ),
-      ),
     );
   }
 }
