@@ -84,6 +84,13 @@ class _LendingPageState extends State<LendingPage> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {},
+        backgroundColor: Color(0xFF1a6ec7),
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Item'),
+      ),
     );
   }
 }
