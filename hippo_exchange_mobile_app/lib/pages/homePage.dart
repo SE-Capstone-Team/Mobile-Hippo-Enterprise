@@ -39,38 +39,45 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Optional AppBar (mock shows just status bar; SafeArea handles it)
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Hippo ',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      TextSpan(
-                        text: 'Exchange: Home',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF93b9e1),
-                        ),
-                      ),
-                    ],
-                  ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Hippo ',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
-            ),
-
+              TextSpan(
+                text: 'Exchange: Home',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF93b9e1),
+                ),
+              ),
+            ],
+          ),
+        ),
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Color(0xFF93b9e1).withOpacity(0.2),
+            height: 1.0,
+          ),
+        ),
+      ),
+      body: Container(
+        color: Colors.white,
+        child: CustomScrollView(
+          slivers: [
             // ---- Items Lent ----
             SliverToBoxAdapter(
               child: SectionHeader(
@@ -164,12 +171,21 @@ class LentCircle extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ClipOval(
-            child: Container(
-              width: 76,
-              height: 76,
-              color: const Color(0xFFF2F2F2),
-              child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Color(0xFF93b9e1).withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+            child: ClipOval(
+              child: Container(
+                color: const Color(0xFFF2F2F2),
+                child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -211,11 +227,20 @@ class BorrowedCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10), // slightly larger border radius
-                  child: AspectRatio(
-                    aspectRatio: 4 / 3,
-                    child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Color(0xFF93b9e1).withOpacity(0.3),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10), // slightly larger border radius
+                    child: AspectRatio(
+                      aspectRatio: 4 / 3,
+                      child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 5), // slightly increased spacing
