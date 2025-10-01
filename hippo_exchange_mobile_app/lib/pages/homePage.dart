@@ -46,11 +46,27 @@ class _HomePageState extends State<HomePage> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: Text(
-                  'Hippo Exchange',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium!.copyWith(fontSize: 24),
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Hippo ',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'Exchange: Home',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF93b9e1),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

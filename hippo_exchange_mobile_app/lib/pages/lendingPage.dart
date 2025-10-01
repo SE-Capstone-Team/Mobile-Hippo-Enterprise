@@ -47,7 +47,32 @@ class _LendingPageState extends State<LendingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lent Items')),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Hippo ',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              TextSpan(
+                text: 'Exchange: Lending',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF93b9e1),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _lendQuery(),
         builder: (context, snapshot) {

@@ -57,7 +57,32 @@ class _BorrowingPageState extends State<BorrowingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Borrowed Items')),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Hippo ',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              TextSpan(
+                text: 'Exchange: Borrowing',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF93b9e1),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _BorrowQuery(),
         builder: (context, snapshot) {
