@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               TextSpan(
-
+                  text: 'Exchange',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

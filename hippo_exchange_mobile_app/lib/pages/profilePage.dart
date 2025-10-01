@@ -158,11 +158,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
               ),
               TextSpan(
-                text: 'Exchange: Profile',
+                text: 'Exchange: ',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
+                ),
+              ),
+              TextSpan(
+                text: 'Profile',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
             ],

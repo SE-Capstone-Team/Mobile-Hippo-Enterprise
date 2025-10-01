@@ -49,19 +49,57 @@ class _LendingPageState extends State<LendingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
 
-      appBar: AppBar(title: const Text('Lent Items'),
-          actions: [
-          IconButton(
-          icon: const Icon(Icons.add_box_outlined),
-      tooltip: 'Add Item',
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddItemPage()),
-        );
-      },
-    ),
-    ],),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        title: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Hippo ',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              TextSpan(
+                text: 'Exchange: ',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF93B9E1),
+                ),
+              ),
+              const TextSpan(
+                text: 'Lending',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(.5),
+          child: Container(
+            color: const Color(0xFF93B9E1).withOpacity(0.2),
+            height: 1.0,
+          ),
+        ),
+        actions: [
+      Container(
+      margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFF93b9e1),
+      ),
+          ),
+        ],
+      ),
       body: StreamBuilder<QuerySnapshot>(
 
 
@@ -100,13 +138,17 @@ class _LendingPageState extends State<LendingPage> {
           );
         },
         ),
-      ),
+
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () {Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddItemPage()),
+        );},
         backgroundColor: Color(0xFF1a6ec7),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Add Item'),
+
       ),
     );
   }

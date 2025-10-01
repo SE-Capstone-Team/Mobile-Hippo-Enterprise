@@ -73,11 +73,19 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 ),
               ),
               TextSpan(
-                text: 'Exchange: Borrowing',
+                text: 'Exchange: ',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
+                ),
+              ),
+              TextSpan(
+                text: 'Borrowing',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
             ],
