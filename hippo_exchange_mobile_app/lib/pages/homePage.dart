@@ -88,17 +88,13 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 212, // increased to fix overflow (200 + 12)
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: demoBorrowed.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, i) =>
-                      BorrowedCard(item: demoBorrowed[i]),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, i) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: BorrowedCard(item: demoBorrowed[i]),
                 ),
+                childCount: demoBorrowed.length,
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
