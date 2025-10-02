@@ -31,13 +31,29 @@ class _MainPostLoginPageState extends State<MainPostLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Blue divider after header
+          Container(
+            height: 1,
+            color: Color(0xFF93b9e1).withOpacity(0.3),
+          ),
+          // Main content
+          Expanded(child: _pages[_selectedIndex]),
+          // Blue divider before nav bar
+          Container(
+            height: 1,
+            color: Color(0xFF93b9e1).withOpacity(0.3),
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         elevation: 0.5,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black54,
+        selectedItemColor: Color(0xFF1a6ec7),
+        unselectedItemColor: Color(0xFF93b9e1),
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [

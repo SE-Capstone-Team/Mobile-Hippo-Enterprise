@@ -145,6 +145,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: false,
+        elevation: 0,
         title: RichText(
           text: TextSpan(
             children: [
@@ -157,11 +158,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
               ),
               TextSpan(
-                text: 'Exchange: Profile',
+                text: 'Exchange: ',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
+                ),
+              ),
+              TextSpan(
+                text: 'Profile',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
             ],
@@ -184,6 +193,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Color(0xFF93b9e1).withOpacity(0.2),
+            height: 1.0,
+          ),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

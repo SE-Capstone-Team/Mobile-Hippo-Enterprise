@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/pages/addItems.dart';
 
 class LendingPage extends StatefulWidget {
   const LendingPage({super.key});
@@ -48,6 +49,7 @@ class _LendingPageState extends State<LendingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: false,
@@ -56,25 +58,52 @@ class _LendingPageState extends State<LendingPage> {
             children: [
               TextSpan(
                 text: 'Hippo ',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
               TextSpan(
-                text: 'Exchange: Lending',
+                text: 'Exchange: ',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF93B9E1),
+                ),
+              ),
+              const TextSpan(
+                text: 'Lending',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF93b9e1),
+                  color: Colors.black,
                 ),
               ),
             ],
           ),
         ),
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(.5),
+          child: Container(
+            color: const Color(0xFF93B9E1).withOpacity(0.2),
+            height: 1.0,
+          ),
+        ),
+        actions: [
+      Container(
+      margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFF93b9e1),
+      ),
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
+
+
         stream: _lendQuery(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -109,13 +138,18 @@ class _LendingPageState extends State<LendingPage> {
               }
           );
         },
-      ),
+        ),
+
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () {Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddItemPage()),
+        );},
         backgroundColor: Color(0xFF1a6ec7),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Add Item'),
+
       ),
     );
   }

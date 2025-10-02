@@ -57,6 +57,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: false,
@@ -72,18 +73,36 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 ),
               ),
               TextSpan(
-                text: 'Exchange: Borrowing',
+                text: 'Exchange: ',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
                 ),
               ),
+              TextSpan(
+                text: 'Borrowing',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
             ],
           ),
         ),
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Color(0xFF93b9e1).withOpacity(0.2),
+            height: 1.0,
+          ),
+        ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
+      body: Container(
+        color: Colors.white,
+        child: StreamBuilder<QuerySnapshot>(
         stream: _BorrowQuery(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -120,6 +139,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
               }
           );
         },
+        ),
       ),
     );
   }
