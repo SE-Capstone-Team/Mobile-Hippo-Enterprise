@@ -207,7 +207,7 @@ class BorrowedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 173, // increased by 1/3 from 130 to about 173
+      width: 200, // CHANGED: was 173 → wider for text space
       child: Card(
         elevation: 0,
         color: Colors.white,
@@ -218,7 +218,7 @@ class BorrowedCard extends StatelessWidget {
             // TODO: open details
           },
           child: Padding(
-            padding: const EdgeInsets.all(8), // increased padding slightly
+            padding: const EdgeInsets.all(10), // CHANGED: was 8 before
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -232,41 +232,48 @@ class BorrowedCard extends StatelessWidget {
                     ),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10), // slightly larger border radius
+                    borderRadius: BorderRadius.circular(10),
                     child: AspectRatio(
-                      aspectRatio: 4 / 3,
+                      aspectRatio: 3 / 2, // CHANGED: less tall
                       child: Image.asset(item.imageUrl, fit: BoxFit.cover),
                     ),
                   ),
                 ),
-                const SizedBox(height: 5), // slightly increased spacing
+                const SizedBox(height: 8), // CHANGED: was 5 → more breathing room
 
                 // Meta line
                 Text(
                   'From: ${item.fromName}',
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 11),
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontSize: 14, // CHANGED: was 11
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500, // ADDED emphasis
+                  ),
                 ),
 
-                const SizedBox(height: 3), // slightly increased spacing
+                const SizedBox(height: 6), // CHANGED: was 3
 
-                // Title (2 lines)
+                // Title (main item name)
                 Text(
                   item.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w700, fontSize: 12),
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    fontWeight: FontWeight.bold, // CHANGED: was w700
+                    fontSize: 18, // CHANGED: was 12
+                  ),
                 ),
 
-                const SizedBox(height: 3), // slightly increased spacing
+                const SizedBox(height: 6), // CHANGED: was 3
 
                 // Duration
                 Text(
                   item.duration,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600, fontSize: 11),
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16, // CHANGED: was 11
+                    color: Colors.black87,
+                  ),
                 ),
               ],
             ),
