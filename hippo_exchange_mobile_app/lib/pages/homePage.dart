@@ -235,7 +235,7 @@ class BorrowedCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     child: AspectRatio(
                       aspectRatio: 3 / 2, // CHANGED: less tall
-                      child: Image.asset(item.imageUrl, fit: BoxFit.cover),
+                      child: Image.asset(item.imageUrl, fit: BoxFit.contain),//CHANGED: from cover to contain to make sure the picture fits in the box
                     ),
                   ),
                 ),
