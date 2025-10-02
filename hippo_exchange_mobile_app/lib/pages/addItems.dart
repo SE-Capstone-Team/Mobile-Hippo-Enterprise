@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddItemPage extends StatefulWidget {
@@ -10,11 +11,15 @@ class AddItemPage extends StatefulWidget {
 }
 
 class _AddItemPageState extends State<AddItemPage> {
-  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final List<File> _images = [];
 
   final ImagePicker _picker = ImagePicker();
+
+  final AuthService _authService = AuthService();
+
+  bool _isSubmitting = false;
 
   Future<void> _pickImage(ImageSource source) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);
@@ -55,20 +60,41 @@ class _AddItemPageState extends State<AddItemPage> {
     );
   }
 
-  void _submitItem() {
-    if (_titleController.text.isEmpty || _descController.text.isEmpty) {
+  Future<void> _submitItem() async {
+    if (_nameController.text.isEmpty || _descController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill in all fields")),
       );
       return;
     }
 
-    // Example: handle save logic
-    print("Title: ${_titleController.text}");
-    print("Description: ${_descController.text}");
-    print("Images: ${_images.map((e) => e.path).toList()}");
+    if (_isSubmitting) return;
 
-    Navigator.pop(context); // Go back after saving
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await _authService.createItem(
+          _nameController.text,
+        _descController.text,
+      );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Item added successfully!")),
+    );
+    if (mounted) { // Check if the widget is still in the tree
+      Navigator.pop(context); // Go back after successful submission
+    }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error adding item: $e")),
+      );
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
   }
 
   @override
@@ -121,7 +147,7 @@ class _AddItemPageState extends State<AddItemPage> {
                       const SizedBox(height: 15),
                       const SizedBox(height: 16),
                       TextField(
-                        controller: _titleController,
+                        controller: _nameController,
                         decoration: const InputDecoration(
                           labelText: "Item Title",
                           border: OutlineInputBorder(),

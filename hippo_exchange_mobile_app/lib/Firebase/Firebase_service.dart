@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 
 //1.	when loggedin, it should save userid for autologin.
 //2.	add firebase features for inventory and profile.
@@ -27,7 +28,7 @@ class AuthService {
       password: password,
     );
     final uid = cred.user!.uid;
-    final profile = await _db.collection('profiles').doc(uid).get();
+    final profile = await _db.collection('profiles').doc(uid);
     return cred;
   }
 
@@ -81,7 +82,7 @@ class AuthService {
   //endregion
 
   //region Lending
-  Future<void> createItem(String name) async {
+  Future<void> createItem(String name, String desc) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not signed in');
 
@@ -97,6 +98,10 @@ class AuthService {
       'borrowerRef': null,
       'dueAt': null,
       'createdAt': FieldValue.serverTimestamp(),
+      'isLent': false,
+      'isPublic': true,
+      'startedAt': null,
+      'desc': desc,
     });
 
   }
@@ -122,7 +127,7 @@ class AuthService {
     required String borrowerUid,
     DateTime? dueAt,
   }) async {
-    final borrowerRef = _auth.currentUser?.uid;
+    final DocumentReference borrowerRef = _auth.currentUser?.uid as DocumentReference<Object?>;
     final itemRef = _items.doc(itemId);
 
     await _db.runTransaction((txn) async {
@@ -144,12 +149,17 @@ class AuthService {
     });
   }
 
-  Stream<QuerySnapshot> streamBorrowedItems({bool? onlyAvailable}) {
-    Query q = _items.orderBy('startedAt', descending: true);
-    if (onlyAvailable != null) {
-      q = q.where('isLent', isEqualTo: true);
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamBorrowedItems() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return Stream.empty(); // Or handle appropriately
     }
-    return q.snapshots();
+    final DocumentReference userProfileRef = _db.collection('profiles').doc(user.uid);
+
+      return _items
+          .where('borrowerRef', isNotEqualTo: userProfileRef)
+          .orderBy('startedAt', descending: true)
+          .snapshots();
   }
 
   Future<void> returnItem({required String itemId}) async {
