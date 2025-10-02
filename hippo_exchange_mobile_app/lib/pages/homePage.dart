@@ -39,6 +39,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       // Optional AppBar (mock shows just status bar; SafeArea handles it)
       body: SafeArea(
         child: CustomScrollView(

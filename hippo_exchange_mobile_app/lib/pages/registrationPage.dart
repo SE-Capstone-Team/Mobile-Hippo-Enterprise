@@ -123,7 +123,7 @@ class _RegisterPageState extends State<RegistrationPage> {
               TextSpan(
                 text: 'Hippo ',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 40.0,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -131,7 +131,7 @@ class _RegisterPageState extends State<RegistrationPage> {
               TextSpan(
                 text: 'Exchange',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 40.0,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
                 ),
@@ -143,182 +143,220 @@ class _RegisterPageState extends State<RegistrationPage> {
 
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 350),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: SingleChildScrollView(
+            child: Container(
+              alignment: Alignment.topCenter,
+              width: 365,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                const SizedBox(height: 10),
-                Center(
-                  child: Image.asset(
-                    'assets/images/HippoExchangeLogo.png',
-                    height: 180, // make it bigger
-                  ),
-                ),
-                const SizedBox(height: 30),
-
-                // Display Name
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Display Name",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    hintText: "Enter your name",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Email
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Email",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    hintText: "Enter your email",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                  // Password
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Password",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: !_isPasswordVisible,
-                    decoration: InputDecoration(
-                      hintText: "Enter password",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                  const SizedBox(height: 5), // Reduced from 10 to move hippo up
+                  // Static Hippo Logo - positioned higher
+                  Container(
+                    width: 180,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          spreadRadius: 2,
                         ),
-                        onPressed: () {
-                          // Update the state for the confirm password field
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Image.asset(
+                        'assets/images/HippoExchangeLogo.png',
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 20), // Reduced spacing after logo
 
-                  // Confirm Password
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Confirm Password",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  // Card containing registration fields
+                  Card(
+                    elevation: 4,
+                    color: Color(0xFF93b9e1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: confirmController,
-                    obscureText: !_isConfirmPasswordVisible,
-                    onSubmitted: (_) => _handleRegister(), // Submit on Enter
-                    decoration: InputDecoration(
-                      hintText: "Re-enter password",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                      // Add the visibility toggle button
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          // Update the state for the confirm password field
-                          setState(() {
-                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          // Display Name
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Display Name",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: nameController,
+                            decoration: InputDecoration(
+                              hintText: "Enter your name",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
 
-                // Register button
-                if (_loading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueGrey[800],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          // Email
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Email",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: emailController,
+                            decoration: InputDecoration(
+                              hintText: "Enter your email",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Password
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Password",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: passwordController,
+                            obscureText: !_isPasswordVisible,
+                            decoration: InputDecoration(
+                              hintText: "Enter password",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Confirm Password
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Confirm Password",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: confirmController,
+                            obscureText: !_isConfirmPasswordVisible,
+                            onSubmitted: (_) => _handleRegister(), // Submit on Enter
+                            decoration: InputDecoration(
+                              hintText: "Re-enter password",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Register button
+                          if (_loading)
+                            const CircularProgressIndicator(color: Colors.white)
+                          else
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Color(0xFF93b9e1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: _handleRegister,
+                                child: Text(
+                                  "Register",
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // Error message
+                  if (_error != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                  
+                  const SizedBox(height: 15),
+                  
+                  // Login link
+                  if (!_loading)
+                    TextButton(
+                      onPressed: widget.onLoginTap,
+                      child: Text(
+                        "- Already have an account? Login here -",
+                        style: TextStyle(
+                          color: Colors.grey[700],
+                          fontSize: 16,
                         ),
                       ),
-                      onPressed: _handleRegister,
-                      child: const Text(
-                        "Register",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
                     ),
-                  ),
-                  // below button text
-                  TextButton(
-                    onPressed: widget.onLoginTap,
-                    child: Text(
-                      "- Already have an account? Login here -",
-                      style: TextStyle(
-                        //decoration: TextDecoration,
-                        color: Colors.grey[700],
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                // Error message
-                if (_error != null) ...[
+                  
                   const SizedBox(height: 10),
-                  Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
                 ],
-                
-                
-                const SizedBox(height: 20),
-              ],
-            ),
+              ),
             ),
           ),
         ),
