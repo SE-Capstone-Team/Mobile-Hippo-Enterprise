@@ -27,37 +27,13 @@ class _BorrowingPageState extends State<BorrowingPage> {
     super.initState();
     db = FirebaseFirestore.instanceFor(
         app: Firebase.app(),
-        databaseId: AuthService.kFirestoreDbId
+        databaseId: 'inventory-db',
     );
   }
 
-  Stream<QuerySnapshot> _BorrowQuery() {
-    return db.collection('items')
-        .where('borrowerRef', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-        .orderBy('startedAt', descending: true)
-        .snapshots();
-  }
-
-  /// Adjust stock safely (prevents negatives)
-  Future<void> _adjustStock(String docId, int delta) async {
-    await db.runTransaction((txn) async {
-      final ref = db.collection('items').doc(docId);
-      final snap = await txn.get(ref);
-      if (!snap.exists) throw StateError('Item not found');
-      final data = snap.data()!;
-      final current = (data['quantity'] ?? 0) as int;
-      final next = current + delta;
-      if (next < 0) throw StateError('Stock cannot go negative.');
-      txn.update(ref, {
-        'quantity': next,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    });
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: false,
@@ -66,7 +42,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
             children: [
               TextSpan(
                 text: 'Hippo ',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
@@ -80,7 +56,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
                   color: Color(0xFF93b9e1),
                 ),
               ),
-              TextSpan(
+              const TextSpan(
                 text: 'Borrowing',
                 style: TextStyle(
                   fontSize: 28,
@@ -99,11 +75,18 @@ class _BorrowingPageState extends State<BorrowingPage> {
             height: 1.0,
           ),
         ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFF93b9e1),
+            ),
+          ),
+        ],
       ),
-      body: Container(
-        color: Colors.white,
-        child: StreamBuilder<QuerySnapshot>(
-        stream: _BorrowQuery(),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: AuthService().streamBorrowedItems(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -116,31 +99,51 @@ class _BorrowingPageState extends State<BorrowingPage> {
             return const Center(child: Text('No items yet.'));
           }
 
+          debugPrint("BorrowingPage: Found ${docs.length} borrowed items.");
+
+
           return ListView.separated(
               itemCount: docs.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, i) {
                 final d = docs[i];
-                final m = d.data();
-                final itemName = d['name'] ?? 'unnamed Item';
-                final dueAt = d['dueAt'] ?? '';
-                final ownerName = d['ownerDisplayName'] ?? 'Owner';
+                final data = d.data() as Map<String, dynamic>;
+                final itemName = data['name'] ?? 'Unnamed Item';
+                final ownerName = data['ownerDisplayName'] ?? 'Owner';
+
+                final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
+                final Timestamp? startedAtTimestamp = data['startedAt'] as Timestamp?;
+
+
+                String subtitleText = 'Borrowed from $ownerName';
+                if (dueAtTimestamp != null) {
+                  final dueDateTime = dueAtTimestamp.toDate().toLocal();
+                  // Simple date format, you can use the `intl` package for more complex formatting
+                  final formattedDueDate = "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
+                  subtitleText += ' • Due $formattedDueDate';
+                }
+
+                String trailingText = ''; // For startedAt or other info
+                if (startedAtTimestamp != null) {
+                  final startedDateTime = startedAtTimestamp.toDate().toLocal();
+                  final formattedStartedDate = "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
+                  trailingText = 'Started: $formattedStartedDate';
+                }
+
 
 
                 return ListTile(
                   title: Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(
-                    dueAt != null
-                        ? 'Borrowed from $ownerName • Due ${dueAt.toLocal().toString().split(' ')[0]}'
-                        : 'Borrowed from $ownerName',
-                  ),
-                  trailing: const Icon(Icons.shopping_bag, color: Colors.blue),
+                  subtitle: Text(subtitleText),
+                  trailing: trailingText.isNotEmpty
+                      ? Text(trailingText)
+                      : const Icon(Icons.more_horiz), // Fallback icon
+                  leading: const Icon(Icons.shopping_bag, color: Colors.blue),
                 );
               }
           );
         },
         ),
-      ),
-    );
+      );
   }
 }

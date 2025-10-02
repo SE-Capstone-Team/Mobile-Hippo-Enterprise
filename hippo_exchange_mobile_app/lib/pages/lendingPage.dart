@@ -19,37 +19,12 @@ class _LendingPageState extends State<LendingPage> {
     super.initState();
     db = FirebaseFirestore.instanceFor(
         app: Firebase.app(),
-        databaseId: AuthService.kFirestoreDbId
+        databaseId: 'inventory-db',
     );
   }
-  Stream<QuerySnapshot> _lendQuery() {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    return db.collection('items')
-        .where('ownerRef', isEqualTo: db.collection('profiles').doc(uid))
-        .orderBy('createdAt', descending: true)
-        .snapshots();
-  }
-  /// Adjust stock safely (prevents negatives)
-  Future<void> _adjustStock(String docId, int delta) async {
-    await db.runTransaction((txn) async {
-      final ref = db.collection('items').doc(docId);
-      final snap = await txn.get(ref);
-      if (!snap.exists) throw StateError('Item not found');
-      final data = snap.data()!;
-      final current = (data['quantity'] ?? 0) as int;
-      final next = current + delta;
-      if (next < 0) throw StateError('Stock cannot go negative.');
-      txn.update(ref, {
-        'quantity': next,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: false,
@@ -102,9 +77,7 @@ class _LendingPageState extends State<LendingPage> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-
-
-        stream: _lendQuery(),
+        stream: AuthService().streamMyLentItems(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -126,6 +99,8 @@ class _LendingPageState extends State<LendingPage> {
                 final data = d.data() as Map<String, dynamic>;
                 final itemName = data['name'] ?? 'unnamed Item';
                 final isLent = data['isLent'] == true;
+
+
                 return ListTile(
                   title: Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: isLent
