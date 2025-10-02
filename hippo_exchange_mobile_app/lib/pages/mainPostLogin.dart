@@ -57,14 +57,14 @@ class _MainPostLoginPageState extends State<MainPostLoginPage> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Borrowing',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.store_mall_directory_rounded), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.handshake),
-            label: 'Lending',
+            label: 'Borrowed',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shelves),
+            label: 'My Items',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],

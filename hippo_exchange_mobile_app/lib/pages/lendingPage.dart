@@ -49,7 +49,7 @@ class _LendingPageState extends State<LendingPage> {
                 ),
               ),
               const TextSpan(
-                text: 'Lending',
+                text: 'My Items',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

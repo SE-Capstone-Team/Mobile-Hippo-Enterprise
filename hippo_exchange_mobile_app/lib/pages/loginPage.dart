@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/mainPostLogin.dart';
-import 'dart:math' as math;
 
 typedef RegisterCallback = void Function();
 typedef LoginSuccessCallback = void Function();
@@ -16,8 +15,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with TickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool _isPasswordVisible = true;
@@ -25,44 +23,11 @@ class _LoginPageState extends State<LoginPage>
   bool _loading = false;
   String? _error;
 
-  late AnimationController _animationController;
-  late List<AnimationController> _floatingControllers;
-
-  // List of floating items
-  final List<String> _floatingItems = [
-    'assets/images/Hammer.webp',
-    'assets/images/Drill.webp',
-    'assets/images/Stapler.jpg',
-    'assets/images/Diamond Necklace.webp',
-    'assets/images/boots.jpg',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 10),
-      vsync: this,
-    )..repeat();
-
-    _floatingControllers = List.generate(
-      _floatingItems.length,
-      (index) => AnimationController(
-        duration: const Duration(seconds: 10), // Same speed for all items
-        vsync: this,
-      )..repeat(),
-    );
-  }
-
   //removes local variables when done sending to the server
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
-    _animationController.dispose();
-    for (var controller in _floatingControllers) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
@@ -139,7 +104,7 @@ class _LoginPageState extends State<LoginPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                  const SizedBox(height: 10),
-                // Animated floating icons around hippo
+                // Static floating icons around hippo
                 SizedBox(
                   height: 300,
                   width: 300,
@@ -169,46 +134,37 @@ class _LoginPageState extends State<LoginPage>
                           ),
                         ),
                       ),
-                      // Floating items
-                      ...List.generate(_floatingItems.length, (index) {
-                        return AnimatedBuilder(
-                          animation: _floatingControllers[index],
-                          builder: (context, child) {
-                            final angle = _floatingControllers[index].value * 2 * 3.14159;
-                            final radius = 120.0;
-                            final x = radius * math.cos(angle + (index * 2 * 3.14159 / _floatingItems.length));
-                            final y = radius * math.sin(angle + (index * 2 * 3.14159 / _floatingItems.length));
-                            
-                            return Transform.translate(
-                              offset: Offset(x, y),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 5,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: ClipOval(
-                                    child: Image.asset(
-                                      _floatingItems[index],
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      }),
+                      // Static positioned items in star pattern
+                      // Top item (12 o'clock)
+                      Positioned(
+                        top: 20,
+                        left: 130,
+                        child: _buildStaticItem(),
+                      ),
+                      // Top right item (2 o'clock)
+                      Positioned(
+                        top: 60,
+                        right: 50,
+                        child: _buildStaticItem(),
+                      ),
+                      // Bottom right item (4 o'clock)
+                      Positioned(
+                        bottom: 60,
+                        right: 50,
+                        child: _buildStaticItem(),
+                      ),
+                      // Bottom left item (8 o'clock)
+                      Positioned(
+                        bottom: 60,
+                        left: 50,
+                        child: _buildStaticItem(),
+                      ),
+                      // Top left item (10 o'clock)
+                      Positioned(
+                        top: 60,
+                        left: 50,
+                        child: _buildStaticItem(),
+                      ),
                     ],
                   ),
                 ),
@@ -337,6 +293,25 @@ class _LoginPageState extends State<LoginPage>
           ),
           ),
         ),
+      ),
+    );
+  }
+
+  // Helper method to build static empty circles
+  Widget _buildStaticItem() {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 5,
+            spreadRadius: 1,
+          ),
+        ],
       ),
     );
   }

@@ -58,7 +58,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 ),
               ),
               const TextSpan(
-                text: 'Borrowing',
+                text: 'Borrowed',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
