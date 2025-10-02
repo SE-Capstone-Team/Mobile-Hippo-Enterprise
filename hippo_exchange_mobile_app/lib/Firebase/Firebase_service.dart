@@ -127,7 +127,10 @@ class AuthService {
     required String borrowerUid,
     DateTime? dueAt,
   }) async {
-    final DocumentReference borrowerRef = _auth.currentUser?.uid as DocumentReference<Object?>;
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not signed in');
+    
+    final DocumentReference borrowerRef = _db.collection('profiles').doc(user.uid);
     final itemRef = _items.doc(itemId);
 
     await _db.runTransaction((txn) async {
@@ -157,7 +160,7 @@ class AuthService {
     final DocumentReference userProfileRef = _db.collection('profiles').doc(user.uid);
 
       return _items
-          .where('borrowerRef', isNotEqualTo: userProfileRef)
+          .where('borrowerRef', isEqualTo: userProfileRef)
           .orderBy('startedAt', descending: true)
           .snapshots();
   }
