@@ -22,8 +22,9 @@ class _LendingPageState extends State<LendingPage> {
     );
   }
   Stream<QuerySnapshot> _lendQuery() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
     return db.collection('items')
-        .where('ownerRef', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+        .where('ownerRef', isEqualTo: db.collection('profiles').doc(uid))
         .orderBy('createdAt', descending: true)
         .snapshots();
   }
@@ -93,9 +94,9 @@ class _LendingPageState extends State<LendingPage> {
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, i) {
                 final d = docs[i];
-                final m = d.data();
-                final itemName = d['name'] ?? 'unnamed Item';
-                final isLent = d['isLent'] == true;
+                final data = d.data() as Map<String, dynamic>;
+                final itemName = data['name'] ?? 'unnamed Item';
+                final isLent = data['isLent'] == true;
                 return ListTile(
                   title: Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: isLent
