@@ -177,21 +177,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF93b9e1),
-            ),
-            child: IconButton(
-              icon: Icon(
-                _isEditing ? Icons.save : Icons.edit,
-                color: Colors.white,
-                size: 24,
+          if (!_isEditing)
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFF93b9e1),
               ),
-              onPressed: _toggleEdit,
+              child: IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                onPressed: _toggleEdit,
+              ),
             ),
-          ),
         ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
@@ -315,6 +316,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
             const SizedBox(height: 30),
             _buildEditField("Name", _nameController),
+            const SizedBox(height: 30),
+            
+            // Save button - larger and below edit fields
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green[600],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                onPressed: _toggleEdit,
+                icon: const Icon(Icons.save, size: 28),
+                label: const Text(
+                  "Save Changes",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
           ],
         ),
       ),
