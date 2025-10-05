@@ -113,143 +113,216 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 final data = d.data() as Map<String, dynamic>;
                 final itemName = data['name'] ?? 'Unnamed Item';
                 final ownerName = data['ownerDisplayName'] ?? 'Owner';
+                final itemDesc = data['desc'] ?? '';
 
                 final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
                 final Timestamp? startedAtTimestamp = data['startedAt'] as Timestamp?;
 
-                String subtitleText = 'Borrowed from $ownerName';
-                if (dueAtTimestamp != null) {
-                  final dueDateTime = dueAtTimestamp.toDate().toLocal();
-                  final formattedDueDate = "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
-                  subtitleText += ' • Due $formattedDueDate';
-                }
-
-                String trailingText = '';
+                String? startedDate;
+                String? dueDate;
+                
                 if (startedAtTimestamp != null) {
                   final startedDateTime = startedAtTimestamp.toDate().toLocal();
-                  final formattedStartedDate = "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
-                  trailingText = 'Started: $formattedStartedDate';
+                  startedDate = "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
+                }
+                
+                if (dueAtTimestamp != null) {
+                  final dueDateTime = dueAtTimestamp.toDate().toLocal();
+                  dueDate = "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
                 }
 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                    border: Border.all(
-                      color: const Color(0xFF93B9E1).withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.blue.withOpacity(0.8),
-                            Colors.indigo.withOpacity(0.6),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        border: Border.all(
-                          color: Colors.blue,
-                          width: 2,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ViewItemPage(
+                          itemId: d.id,
+                          itemData: data,
                         ),
                       ),
-                      child: const Icon(
-                        Icons.shopping_bag,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    title: Text(
-                      itemName, 
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.blue.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            subtitleText,
-                            style: TextStyle(
-                              color: Colors.blue[700],
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                          ),
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
                         ),
                       ],
+                      border: Border.all(
+                        color: const Color(0xFF93B9E1).withOpacity(0.2),
+                        width: 1,
+                      ),
                     ),
-                    trailing: trailingText.isNotEmpty
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          // Circular image placeholder
+                          Container(
+                            width: 60,
+                            height: 60,
                             decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Colors.orange.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              trailingText,
-                              style: TextStyle(
-                                color: Colors.orange[700],
-                                fontWeight: FontWeight.w600,
-                                fontSize: 10,
-                              ),
-                            ),
-                          )
-                        : Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.1),
                               shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.blue.withOpacity(0.8),
+                                  Colors.indigo.withOpacity(0.6),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              border: Border.all(
+                                color: Colors.blue,
+                                width: 2,
+                              ),
                             ),
                             child: const Icon(
-                              Icons.more_horiz,
-                              color: Colors.grey,
-                              size: 20,
+                              Icons.shopping_bag,
+                              color: Colors.white,
+                              size: 28,
                             ),
                           ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ViewItemPage(
-                            itemId: d.id,
-                            itemData: data,
+                          const SizedBox(width: 16),
+                          
+                          // Expanded content area
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Item name
+                                Text(
+                                  itemName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black87,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                
+                                const SizedBox(height: 6),
+                                
+                                // Description
+                                if (itemDesc.isNotEmpty) ...[
+                                  Text(
+                                    itemDesc,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                                
+                                // Owner info
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.blue.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Borrowed from: $ownerName',
+                                    style: TextStyle(
+                                      color: Colors.blue[700],
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                
+                                const SizedBox(height: 8),
+                                
+                                // Date information - stacked
+                                if (startedDate != null || dueDate != null) ...[
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (startedDate != null) ...[
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: Colors.green.withOpacity(0.3),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Started: $startedDate',
+                                            style: TextStyle(
+                                              color: Colors.green[700],
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      
+                                      if (dueDate != null && startedDate != null) ...[
+                                        const SizedBox(height: 6),
+                                      ],
+                                      
+                                      if (dueDate != null) ...[
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: Colors.orange.withOpacity(0.3),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Return by: $dueDate',
+                                            style: TextStyle(
+                                              color: Colors.orange[700],
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                          
+                          // Status icon
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.assignment_outlined,
+                              color: Colors.blue[600],
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               }
