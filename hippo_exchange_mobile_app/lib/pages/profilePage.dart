@@ -141,9 +141,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF5F7FA),
         centerTitle: false,
         elevation: 0,
         title: RichText(
@@ -268,23 +268,24 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
         const SizedBox(height: 40),
         
-        // Logout button - larger
+        // Logout button - less prominent
         SizedBox(
           width: double.infinity,
-          height: 60,
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red[600],
-              foregroundColor: Colors.white,
+          height: 50,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+              side: BorderSide(color: Colors.grey[400]!, width: 1),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
               ),
+              backgroundColor: Colors.white,
             ),
             onPressed: _handleLogout,
-            icon: const Icon(Icons.logout, size: 24),
+            icon: const Icon(Icons.logout, size: 20),
             label: const Text(
               "Logout",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
         ),

@@ -1,0 +1,287 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+class ViewItemPage extends StatefulWidget {
+  final String itemId;
+  final Map<String, dynamic>? itemData; // Optional pre-loaded data
+  
+  const ViewItemPage({
+    super.key, 
+    required this.itemId,
+    this.itemData,
+  });
+
+  @override
+  State<ViewItemPage> createState() => _ViewItemPageState();
+}
+
+class _ViewItemPageState extends State<ViewItemPage> {
+  Map<String, dynamic>? _itemData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.itemData != null) {
+      _itemData = widget.itemData;
+      _isLoading = false;
+    } else {
+      _loadItemData();
+    }
+  }
+
+  Future<void> _loadItemData() async {
+    try {
+      final doc = await FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: 'inventory-db',
+      ).collection('items').doc(widget.itemId).get();
+      
+      if (doc.exists) {
+        setState(() {
+          _itemData = doc.data();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading item: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F4F8),
+      appBar: AppBar(
+        title: const Text("Item Details"),
+        backgroundColor: const Color(0xFF93B9E1),
+        elevation: 0,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _itemData == null
+              ? const Center(child: Text('Item not found'))
+              : _buildItemDetails(),
+    );
+  }
+
+  Widget _buildItemDetails() {
+    final itemName = _itemData!['name'] ?? 'Unnamed Item';
+    final itemDesc = _itemData!['desc'] ?? 'No description available';
+    final isLent = _itemData!['isLent'] == true;
+    final ownerDisplayName = _itemData!['ownerDisplayName'] ?? 'Unknown Owner';
+    
+    // Format dates
+    String? borrowedDate;
+    String? dueDate;
+    
+    if (_itemData!['startedAt'] != null) {
+      final startedAtTimestamp = _itemData!['startedAt'] as Timestamp;
+      final startedDateTime = startedAtTimestamp.toDate().toLocal();
+      borrowedDate = "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
+    }
+    
+    if (_itemData!['dueAt'] != null) {
+      final dueAtTimestamp = _itemData!['dueAt'] as Timestamp;
+      final dueDateTime = dueAtTimestamp.toDate().toLocal();
+      dueDate = "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Large image space with rounded corners
+          Container(
+            width: double.infinity,
+            height: 250,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: const Color(0xFFF2F2F2),
+              border: Border.all(
+                color: const Color(0xFF93B9E1).withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: const Icon(
+                Icons.image,
+                size: 80,
+                color: Color(0xFF93B9E1),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Item title
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF93B9E1).withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Item Name',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  itemName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Description
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF93B9E1).withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Description',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  itemDesc,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Item details
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF93B9E1).withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Details',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                _buildDetailRow('Owner', ownerDisplayName),
+                const SizedBox(height: 12),
+                
+                _buildDetailRow(
+                  'Status', 
+                  isLent ? 'Currently Borrowed' : 'Available',
+                  statusColor: isLent ? Colors.red : Colors.green,
+                ),
+                
+                if (borrowedDate != null) ...[
+                  const SizedBox(height: 12),
+                  _buildDetailRow('Borrowed On', borrowedDate),
+                ],
+                
+                if (dueDate != null) ...[
+                  const SizedBox(height: 12),
+                  _buildDetailRow('Due Date', dueDate),
+                ],
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color? statusColor}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            '$label:',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              color: statusColor ?? Colors.black87,
+              fontWeight: statusColor != null ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
