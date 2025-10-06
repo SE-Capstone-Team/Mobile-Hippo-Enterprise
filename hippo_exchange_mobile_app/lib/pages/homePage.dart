@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hippo_exchange_mobile_app/pages/borrowingPage.dart';
-import 'package:hippo_exchange_mobile_app/pages/lendingPage.dart';
+import 'package:hippo_exchange_mobile_app/pages/borrowedPage.dart';
+import 'package:hippo_exchange_mobile_app/pages/myItemsPage.dart';
 
 
 void main() => runApp(const BorrowlyApp());

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/pages/homePage.dart';
-import 'package:hippo_exchange_mobile_app/pages/borrowingPage.dart';
-import 'package:hippo_exchange_mobile_app/pages/lendingPage.dart';
+import 'package:hippo_exchange_mobile_app/pages/borrowedPage.dart';
+import 'package:hippo_exchange_mobile_app/pages/myItemsPage.dart';
 import 'package:hippo_exchange_mobile_app/pages/profilePage.dart'; // Uncomment and implement when ready
 
 class MainPostLoginPage extends StatefulWidget {
