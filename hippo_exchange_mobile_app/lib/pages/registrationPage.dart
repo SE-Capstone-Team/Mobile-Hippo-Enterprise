@@ -16,11 +16,12 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegistrationPage> {
-  final nameController = TextEditingController();
+  //final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmController = TextEditingController();
-
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
     //Used for being able to view password while entering
     bool _isPasswordVisible = false;
     bool _isConfirmPasswordVisible = false;
@@ -32,10 +33,12 @@ class _RegisterPageState extends State<RegistrationPage> {
   //and let firebase do the work.
   @override
   void dispose() {
-    nameController.dispose();
+    //nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
     super.dispose();
   }
   //this handles all the registration, this will run after the user hits
@@ -44,8 +47,9 @@ class _RegisterPageState extends State<RegistrationPage> {
     final email = emailController.text.trim();
     final password = passwordController.text;
     final confirm = confirmController.text;
-    final displayName = nameController.text.trim();
-
+    //final displayName = nameController.text.trim();
+    final firstName = firstNameController.text.trim();
+    final lastName = lastNameController.text.trim();
     //region email password complexity
     if (email.isEmpty || password.isEmpty) {
       setState(() => _error = 'Email and password are required.' );
@@ -88,7 +92,9 @@ class _RegisterPageState extends State<RegistrationPage> {
       await AuthService().register(
         email: email,
         password: password,
-        displayName: displayName.isEmpty ? null : displayName,
+        firstName: firstName,
+        lastName: lastName,
+       // displayName: displayName.isEmpty ? null : displayName,
       );
 
       if (mounted) {
@@ -191,19 +197,41 @@ class _RegisterPageState extends State<RegistrationPage> {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          // Display Name
+                          // First Name
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              "Display Name",
+                              "First Name",
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
                             ),
                           ),
                           const SizedBox(height: 8),
                           TextField(
-                            controller: nameController,
+                            controller: firstNameController,
                             decoration: InputDecoration(
-                              hintText: "Enter your name",
+                              hintText: "Enter your first name",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Last Name
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Last Name",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: lastNameController,
+                            decoration: InputDecoration(
+                              hintText: "Enter your last name",
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
