@@ -1,11 +1,9 @@
+import 'dart:ffi';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
-
-//1.	when loggedin, it should save userid for autologin.
-//2.	add firebase features for inventory and profile.
-//3.	add logout function in profile
 
 class AuthService {
   //shortcuts to call
@@ -80,7 +78,7 @@ class AuthService {
   //endregion
 
   //region Lending
-  Future<void> createItem(String name, String desc) async {
+  Future<void> createItem(String name, String desc, Double price) async {
     final user = _auth.currentUser;
     final DocumentReference userProfileRef = _db.collection('profiles').doc(user?.uid);
     final userProfile = await userProfileRef.get();
@@ -90,6 +88,7 @@ class AuthService {
     await _items.add({
       'name': name,
       'desc': desc,
+      'pricePerDay': price,
       'ownerId': userProfileRef,
       'isLent': false,
       'borrowerId': null,

@@ -69,7 +69,6 @@ class _BasePageState extends State<BasePage> {
                 _currentIndex = 1;
               });
             },
-            // Remove onLoginSuccess callback - AuthGate handles navigation automatically
           ),
           RegistrationPage(
             onLoginTap: () {
@@ -77,20 +76,7 @@ class _BasePageState extends State<BasePage> {
                 _currentIndex = 0;
               });
             },
-            // Remove onRegisterSuccess callback - AuthGate handles navigation automatically
           ),
-          /*UserProfilePage(
-            onLogoutTap: () {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-            onLogoutSuccess: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const BasePage()),
-              );
-            }
-          ),*/
         ],
       ),
     );
