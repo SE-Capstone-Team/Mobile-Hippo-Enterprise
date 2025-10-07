@@ -28,7 +28,6 @@ class AuthService {
       password: password,
     );
     final uid = cred.user!.uid;
-    final profile = await _db.collection('profiles').doc(uid);
     return cred;
   }
 
@@ -37,6 +36,7 @@ class AuthService {
   Stream<User?> get authState => _auth.authStateChanges();
 
   // Update user profile information
+  //firstname lastname
   Future<void> updateUserProfile({
     String? displayName,
   }) async {
@@ -59,20 +59,19 @@ class AuthService {
   Future<UserCredential> register({
     required String email,
     required String password,
-    String? displayName,
+    required firstName,
+    required lastName,
+    required address
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
-    if (displayName != null && displayName.isNotEmpty) {
-      await cred.user!.updateDisplayName(displayName);
-    }
     await _db.collection('profiles').doc(cred.user!.uid).set({
       'email': email,
-      'displayName': displayName ?? '',
-      'createdAt': FieldValue.serverTimestamp(),
-      'roles': ['user'],
+      'firstName': firstName ?? '',
+      'lastName': lastName ?? '',
+      'address': address ?? '',
     }, SetOptions(merge: true));
     await cred.user!.sendEmailVerification();
 
