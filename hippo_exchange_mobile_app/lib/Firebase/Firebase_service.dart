@@ -190,12 +190,13 @@ class AuthService {
   String mapAuthError(Object e) {
     if (e is FirebaseAuthException) {
       switch (e.code) {
+        case 'invalid-credential': return 'Email or password is Incorrect!';
+        case 'channel-error': return 'Missing Parameter';
         case 'invalid-email': return 'That email address is malformed.';
         case 'user-disabled': return 'This account has been disabled.';
         case 'user-not-found': return 'No user found with that email.';
         case 'wrong-password': return 'Incorrect password.';
         case 'email-already-in-use': return 'Email is already registered.';
-        case 'weak-password': return 'Password is too weak.';
         case 'operation-not-allowed': return 'Sign-in method is disabled.';
         case 'too-many-requests': return 'Too many attempts. Try again later.';
         case 'network-request-failed': return 'Network error. Check connection.';
