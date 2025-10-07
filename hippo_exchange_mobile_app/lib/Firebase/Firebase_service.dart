@@ -68,9 +68,9 @@ class AuthService {
     );
     await _db.collection('profiles').doc(cred.user!.uid).set({
       'email': email,
-      'firstName': firstName ?? '',
-      'lastName': lastName ?? '',
-      'address': address ?? '',
+      'firstName': firstName,
+      'lastName': lastName,
+      'address': address,
     }, SetOptions(merge: true));
     await cred.user!.sendEmailVerification();
 
