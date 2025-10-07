@@ -22,6 +22,7 @@ class _RegisterPageState extends State<RegistrationPage> {
   final confirmController = TextEditingController();
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
+  final addressController = TextEditingController();
     //Used for being able to view password while entering
     bool _isPasswordVisible = false;
     bool _isConfirmPasswordVisible = false;
@@ -39,6 +40,7 @@ class _RegisterPageState extends State<RegistrationPage> {
     confirmController.dispose();
     firstNameController.dispose();
     lastNameController.dispose();
+    addressController.dispose();
     super.dispose();
   }
   //this handles all the registration, this will run after the user hits
@@ -50,6 +52,7 @@ class _RegisterPageState extends State<RegistrationPage> {
     //final displayName = nameController.text.trim();
     final firstName = firstNameController.text.trim();
     final lastName = lastNameController.text.trim();
+    final address = addressController.text.trim();
     //region email password complexity
     if (email.isEmpty || password.isEmpty) {
       setState(() => _error = 'Email and password are required.' );
@@ -94,6 +97,7 @@ class _RegisterPageState extends State<RegistrationPage> {
         password: password,
         firstName: firstName,
         lastName: lastName,
+        address: address,
        // displayName: displayName.isEmpty ? null : displayName,
       );
 
@@ -197,41 +201,67 @@ class _RegisterPageState extends State<RegistrationPage> {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          // First Name
+                          // Personal Info Label
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              "First Name",
+                              "Personal Info",
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
                             ),
                           ),
                           const SizedBox(height: 8),
-                          TextField(
-                            controller: firstNameController,
-                            decoration: InputDecoration(
-                              hintText: "Enter your first name",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                          
+                          // First Name and Last Name on same row
+                          Row(
+                            children: [
+                              // First Name
+                              Expanded(
+                                child: TextField(
+                                  controller: firstNameController,
+                                  decoration: InputDecoration(
+                                    hintText: "First Name",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  ),
+                                ),
                               ),
-                              filled: true,
-                              fillColor: Colors.white,
-                            ),
+                              const SizedBox(width: 12),
+                              // Last Name
+                              Expanded(
+                                child: TextField(
+                                  controller: lastNameController,
+                                  decoration: InputDecoration(
+                                    hintText: "Last Name",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 20),
 
-                          // Last Name
+                          // Address
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              "Last Name",
+                              "Address",
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
                             ),
                           ),
                           const SizedBox(height: 8),
                           TextField(
-                            controller: lastNameController,
+                            controller: addressController,
                             decoration: InputDecoration(
-                              hintText: "Enter your last name",
+                              hintText: "Enter your address",
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
