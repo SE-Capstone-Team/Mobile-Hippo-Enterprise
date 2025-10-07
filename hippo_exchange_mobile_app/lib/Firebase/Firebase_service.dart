@@ -27,7 +27,6 @@ class AuthService {
       email: email,
       password: password,
     );
-    final uid = cred.user!.uid;
     return cred;
   }
 
@@ -83,7 +82,7 @@ class AuthService {
   //region Lending
   Future<void> createItem(String name, String desc) async {
     final user = _auth.currentUser;
-    final DocumentReference userProfileRef = _db.collection('profiles').doc(user.uid);
+    final DocumentReference userProfileRef = _db.collection('profiles').doc(user?.uid);
     final userProfile = await userProfileRef.get();
     final location = userProfile['address'];
     if (user == null) throw Exception('Not signed in');
@@ -166,7 +165,6 @@ class AuthService {
     await _db.runTransaction((txn) async {
       final itemSnap = await txn.get(itemRef);
       if (!itemSnap.exists) throw Exception('Item not found');
-      final item = itemSnap.data() as Map<String, dynamic>;
 
       // Clear item’s active state
       txn.update(itemRef, {
