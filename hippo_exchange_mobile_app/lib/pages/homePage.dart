@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 
 // Model classes for items
 class ItemModel {
@@ -572,17 +573,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _borrowDemoItem(ItemModel item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Demo: Borrowing "${item.name}" - Firebase integration available'),
-        backgroundColor: Colors.orange,
-        action: SnackBarAction(
-          label: 'Switch to Firebase',
-          textColor: Colors.white,
-          onPressed: () {
-            setState(() {
-              _useFirebaseData = true;
-            });
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewItemPage(
+          itemId: item.id,
+          itemData: {
+            'name': item.name,
+            'desc': item.description,
+            'isLent': !item.isAvailable,
+            'ownerDisplayName': item.lenderName,
+            'picture': item.imageUrl,
           },
         ),
       ),
@@ -590,35 +591,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _borrowFirebaseItem(String itemId, Map<String, dynamic> data) async {
-    try {
-      // TODO: Implement actual borrowing logic with user authentication
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Borrowing "${data['name']}" - Implementation in progress'),
-          backgroundColor: Color(0xFF93b9e1),
-          action: SnackBarAction(
-            label: 'OK',
-            textColor: Colors.white,
-            onPressed: () {},
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewItemPage(
+          itemId: itemId,
+          itemData: data,
         ),
-      );
-      
-      // Future implementation:
-      // await _authService.startBorrow(
-      //   itemId: itemId,
-      //   borrowerUid: currentUser.uid,
-      //   dueAt: DateTime.now().add(Duration(days: 7)),
-      // );
-      
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+      ),
+    );
   }
 }
 
@@ -699,24 +680,6 @@ class ItemCard extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: item.isAvailable 
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          item.isAvailable ? 'Available' : 'Not Available',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: item.isAvailable ? Colors.green[700] : Colors.red[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -747,18 +710,16 @@ class ItemCard extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: item.isAvailable 
-                      ? Color(0xFF93b9e1) 
-                      : Colors.grey[400],
+                  backgroundColor: Color(0xFF93b9e1),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                   padding: EdgeInsets.symmetric(vertical: 12),
                 ),
-                onPressed: item.isAvailable ? onBorrow : null,
+                onPressed: onBorrow,
                 child: Text(
-                  item.isAvailable ? 'Borrow Item' : 'Not Available',
+                  'View Item',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -790,7 +751,6 @@ class FirebaseItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = itemData['name'] ?? 'Unnamed Item';
     final description = itemData['desc'] ?? '';
-    final isAvailable = !(itemData['isLent'] ?? false);
     final imageUrl = itemData['picture'] ?? 'assets/images/HippoExchangeLogo.png';
 
     return Card(
@@ -837,24 +797,6 @@ class FirebaseItemCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       _buildLenderInfo(itemData),
-                      const SizedBox(height: 2),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isAvailable 
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          isAvailable ? 'Available' : 'Currently Borrowed',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isAvailable ? Colors.green[700] : Colors.red[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -885,18 +827,16 @@ class FirebaseItemCard extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isAvailable 
-                      ? Color(0xFF93b9e1) 
-                      : Colors.grey[400],
+                  backgroundColor: Color(0xFF93b9e1),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                   padding: EdgeInsets.symmetric(vertical: 12),
                 ),
-                onPressed: isAvailable ? onBorrow : null,
+                onPressed: onBorrow,
                 child: Text(
-                  isAvailable ? 'Borrow Item' : 'Not Available',
+                  'View Item',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
