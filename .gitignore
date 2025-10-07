@@ -75,3 +75,4 @@ hippo_exchange_mobile_app/macos/Flutter/GeneratedPluginRegistrant.swift
 hippo_exchange_mobile_app/windows/flutter/generated_plugin_registrant.cc
 hippo_exchange_mobile_app/windows/flutter/generated_plugins.cmake
 hippo_exchange_mobile_app/macos/Flutter/GeneratedPluginRegistrant.swift
+*.swift
