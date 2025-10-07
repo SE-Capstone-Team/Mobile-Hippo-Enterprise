@@ -2,6 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
+// Model classes for items
+class ItemModel {
+  final String id;
+  final String name;
+  final String description;
+  final String lenderName;
+  final String imageUrl;
+  final bool isAvailable;
+
+  ItemModel({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.lenderName,
+    required this.imageUrl,
+    this.isAvailable = true,
+  });
+
+  // Factory constructor to create ItemModel from Firestore document
+  factory ItemModel.fromFirestore(String docId, Map<String, dynamic> data) {
+    return ItemModel(
+      id: docId,
+      name: data['name'] ?? 'Unnamed Item',
+      description: data['desc'] ?? '',
+      lenderName: 'Loading...', // Will be populated separately
+      imageUrl: data['picture'] ?? 'assets/images/HippoExchangeLogo.png',
+      isAvailable: !(data['isLent'] ?? false),
+    );
+  }
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -12,6 +43,93 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _useFirebaseData = true; // Toggle between Firebase and demo data
+  final AuthService _authService = AuthService();
+  
+  // Demo data - fallback when Firebase is not connected
+  List<ItemModel> _demoItems = [
+    ItemModel(
+      id: '1',
+      name: 'Harbor Freight Engineer\'s Hammer',
+      description: 'Heavy-duty hammer perfect for construction work. Well-maintained and ready to use.',
+      lenderName: 'Dexter Morgan',
+      imageUrl: 'assets/images/Hammer.webp',
+    ),
+    ItemModel(
+      id: '2',
+      name: 'Justin Men\'s Conductor 8" Boots',
+      description: 'Comfortable steel-toe boots, size 10. Great for outdoor work and construction.',
+      lenderName: 'Jesus Martinez',
+      imageUrl: 'assets/images/boots.jpg',
+    ),
+    ItemModel(
+      id: '3',
+      name: 'Hercules Compact Drill Kit',
+      description: 'Complete drill kit with various bits. Perfect for home improvement projects.',
+      lenderName: 'Hannah Davis',
+      imageUrl: 'assets/images/Drill.webp',
+    ),
+    ItemModel(
+      id: '4',
+      name: 'Global Carry-On Spinner',
+      description: 'Lightweight luggage perfect for travel. TSA approved size with smooth rolling wheels.',
+      lenderName: 'Sarah Johnson',
+      imageUrl: 'assets/images/Carryon Spinner.webp',
+    ),
+    ItemModel(
+      id: '5',
+      name: 'The Martian - Hardback',
+      description: 'Popular science fiction novel in excellent condition. Great for book lovers.',
+      lenderName: 'Mike Chen',
+      imageUrl: 'assets/images/TheMartian.jpg',
+    ),
+    ItemModel(
+      id: '6',
+      name: 'Diamond Necklace',
+      description: 'Elegant jewelry piece for special occasions. Handle with care.',
+      lenderName: 'Emily Rose',
+      imageUrl: 'assets/images/Diamond Necklace.webp',
+    ),
+    ItemModel(
+      id: '7',
+      name: 'Foldable Baby Stroller',
+      description: 'Compact and lightweight stroller. Easy to fold and transport.',
+      lenderName: 'Jennifer Wilson',
+      imageUrl: 'assets/images/Stroller.webp',
+    ),
+    ItemModel(
+      id: '8',
+      name: 'Heavy Duty Stapler',
+      description: 'Professional-grade stapler for office or home use. Includes staples.',
+      lenderName: 'Robert Kim',
+      imageUrl: 'assets/images/Stapler.jpg',
+    ),
+    ItemModel(
+      id: '9',
+      name: 'Camping Tent',
+      description: 'Four-person tent perfect for camping trips. Waterproof and easy to set up.',
+      lenderName: 'Alex Thompson',
+      imageUrl: 'assets/images/Tent.webp',
+    ),
+    ItemModel(
+      id: '10',
+      name: 'HD Projector',
+      description: 'High-definition projector for presentations or movie nights. Includes cables.',
+      lenderName: 'Lisa Wang',
+      imageUrl: 'assets/images/projector.jpg',
+    ),
+  ];
+
+  List<ItemModel> get _filteredDemoItems {
+    if (_searchQuery.isEmpty) {
+      return _demoItems;
+    }
+    return _demoItems.where((item) {
+      return item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+             item.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+             item.lenderName.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
 
   @override
   void dispose() {
@@ -57,6 +175,69 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+        actions: [
+          // Data source toggle button
+          PopupMenuButton<String>(
+            icon: Icon(
+              _useFirebaseData ? Icons.cloud : Icons.visibility,
+              color: Color(0xFF93b9e1),
+            ),
+            tooltip: _useFirebaseData ? 'Using Firebase Data' : 'Using Demo Data',
+            onSelected: (value) {
+              setState(() {
+                _useFirebaseData = value == 'firebase';
+              });
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'firebase',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.cloud,
+                      color: _useFirebaseData ? Color(0xFF93b9e1) : Colors.grey,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Firebase Data',
+                      style: TextStyle(
+                        color: _useFirebaseData ? Color(0xFF93b9e1) : Colors.black,
+                        fontWeight: _useFirebaseData ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                    if (_useFirebaseData) ...[
+                      SizedBox(width: 8),
+                      Icon(Icons.check, color: Color(0xFF93b9e1), size: 16),
+                    ],
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'demo',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.visibility,
+                      color: !_useFirebaseData ? Colors.orange : Colors.grey,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Demo Data',
+                      style: TextStyle(
+                        color: !_useFirebaseData ? Colors.orange : Colors.black,
+                        fontWeight: !_useFirebaseData ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                    if (!_useFirebaseData) ...[
+                      SizedBox(width: 8),
+                      Icon(Icons.check, color: Colors.orange, size: 16),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
           child: Container(
@@ -108,89 +289,7 @@ class _HomePageState extends State<HomePage> {
             
             // Items List
             Expanded(
-              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: AuthService().streamAvailableItems(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator(color: Color(0xFF93b9e1)));
-                  }
-                  
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error loading items: ${snapshot.error}',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    );
-                  }
-                  
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            size: 64,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No items available',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  
-                  var items = snapshot.data!.docs;
-                  
-                  // Filter items based on search query
-                  if (_searchQuery.isNotEmpty) {
-                    items = items.where((doc) {
-                      final data = doc.data();
-                      final name = (data['name'] ?? '').toString().toLowerCase();
-                      return name.contains(_searchQuery);
-                    }).toList();
-                  }
-                  
-                  if (items.isEmpty && _searchQuery.isNotEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 64,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No items found for "$_searchQuery"',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  
-                  return ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final doc = items[index];
-                      final data = doc.data();
-                      return _buildItemCard(doc.id, data);
-                    },
-                  );
-                },
-              ),
+              child: _useFirebaseData ? _buildFirebaseItemsList() : _buildDemoItemsList(),
             ),
           ],
         ),
@@ -198,7 +297,326 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildItemCard(String itemId, Map<String, dynamic> data) {
+  // Method to build Firebase-connected items list
+  Widget _buildFirebaseItemsList() {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _authService.streamAvailableItems(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF93b9e1)),
+                SizedBox(height: 16),
+                Text(
+                  'Loading items from database...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red[400],
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Error loading items',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.red[600],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '${snapshot.error}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _useFirebaseData = false;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF93b9e1),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text('Use Demo Data'),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'No items available',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Be the first to share an item!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[500],
+                  ),
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _useFirebaseData = false;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF93b9e1),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text('View Demo Data'),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        var docs = snapshot.data!.docs;
+        
+        // Filter items based on search query
+        if (_searchQuery.isNotEmpty) {
+          docs = docs.where((doc) {
+            final data = doc.data();
+            final name = (data['name'] ?? '').toString().toLowerCase();
+            final desc = (data['desc'] ?? '').toString().toLowerCase();
+            return name.contains(_searchQuery.toLowerCase()) ||
+                   desc.contains(_searchQuery.toLowerCase());
+          }).toList();
+        }
+        
+        if (docs.isEmpty && _searchQuery.isNotEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_off,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'No items found for "$_searchQuery"',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return ListView.builder(
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final doc = docs[index];
+            final data = doc.data();
+            return FirebaseItemCard(
+              itemId: doc.id,
+              itemData: data,
+              onBorrow: () => _borrowFirebaseItem(doc.id, data),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Method to build demo items list
+  Widget _buildDemoItemsList() {
+    final items = _filteredDemoItems;
+    
+    if (items.isEmpty && _searchQuery.isNotEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No items found for "$_searchQuery"',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Toggle button
+        Container(
+          margin: EdgeInsets.only(bottom: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.orange[700], size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Showing demo data - Switch to Firebase',
+                          style: TextStyle(
+                            color: Colors.orange[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _useFirebaseData = true;
+                          });
+                        },
+                        child: Text(
+                          'Switch',
+                          style: TextStyle(color: Color(0xFF93b9e1)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return ItemCard(
+                item: item,
+                onBorrow: () => _borrowDemoItem(item),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _borrowDemoItem(ItemModel item) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Demo: Borrowing "${item.name}" - Firebase integration available'),
+        backgroundColor: Colors.orange,
+        action: SnackBarAction(
+          label: 'Switch to Firebase',
+          textColor: Colors.white,
+          onPressed: () {
+            setState(() {
+              _useFirebaseData = true;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _borrowFirebaseItem(String itemId, Map<String, dynamic> data) async {
+    try {
+      // TODO: Implement actual borrowing logic with user authentication
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Borrowing "${data['name']}" - Implementation in progress'),
+          backgroundColor: Color(0xFF93b9e1),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {},
+          ),
+        ),
+      );
+      
+      // Future implementation:
+      // await _authService.startBorrow(
+      //   itemId: itemId,
+      //   borrowerUid: currentUser.uid,
+      //   dueAt: DateTime.now().add(Duration(days: 7)),
+      // );
+      
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
+// Reusable ItemCard widget - ready for database integration
+class ItemCard extends StatelessWidget {
+  final ItemModel item;
+  final VoidCallback onBorrow;
+
+  const ItemCard({
+    super.key,
+    required this.item,
+    required this.onBorrow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.only(bottom: 16),
@@ -212,17 +630,33 @@ class _HomePageState extends State<HomePage> {
           children: [
             Row(
               children: [
+                // Item Image/Icon
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
-                    color: Color(0xFF93b9e1).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Color(0xFF93b9e1).withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.inventory_2,
-                    color: Color(0xFF93b9e1),
-                    size: 24,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      item.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Color(0xFF93b9e1).withOpacity(0.1),
+                          child: Icon(
+                            Icons.inventory_2,
+                            color: Color(0xFF93b9e1),
+                            size: 24,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -231,7 +665,168 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        data['name'] ?? 'Unnamed Item',
+                        item.name,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Lender: ${item.lenderName}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF93b9e1),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: item.isAvailable 
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          item.isAvailable ? 'Available' : 'Not Available',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: item.isAvailable ? Colors.green[700] : Colors.red[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (item.description.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Description:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.description,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  height: 1.4,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: item.isAvailable 
+                      ? Color(0xFF93b9e1) 
+                      : Colors.grey[400],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
+                onPressed: item.isAvailable ? onBorrow : null,
+                child: Text(
+                  item.isAvailable ? 'Borrow Item' : 'Not Available',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Firebase-specific ItemCard widget that handles Firestore data
+class FirebaseItemCard extends StatelessWidget {
+  final String itemId;
+  final Map<String, dynamic> itemData;
+  final VoidCallback onBorrow;
+
+  const FirebaseItemCard({
+    super.key,
+    required this.itemId,
+    required this.itemData,
+    required this.onBorrow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final name = itemData['name'] ?? 'Unnamed Item';
+    final description = itemData['desc'] ?? '';
+    final isAvailable = !(itemData['isLent'] ?? false);
+    final imageUrl = itemData['picture'] ?? 'assets/images/HippoExchangeLogo.png';
+
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Item Image/Icon
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Color(0xFF93b9e1).withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: imageUrl.startsWith('assets/')
+                        ? Image.asset(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildFallbackIcon();
+                            },
+                          )
+                        : (imageUrl.startsWith('http')
+                            ? Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return _buildFallbackIcon();
+                                },
+                              )
+                            : _buildFallbackIcon()),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -240,7 +835,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 4),
                       FutureBuilder<DocumentSnapshot>(
-                        future: (data['ownerId'] as DocumentReference?)?.get(),
+                        future: (itemData['ownerId'] as DocumentReference?)?.get(),
                         builder: (context, ownerSnapshot) {
                           if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
                             final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
@@ -265,12 +860,30 @@ class _HomePageState extends State<HomePage> {
                           );
                         },
                       ),
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isAvailable 
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          isAvailable ? 'Available' : 'Currently Borrowed',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isAvailable ? Colors.green[700] : Colors.red[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            if (data['desc'] != null && data['desc'].toString().isNotEmpty) ...[
+            if (description.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(
                 'Description:',
@@ -282,7 +895,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 4),
               Text(
-                data['desc'] ?? '',
+                description,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[700],
@@ -295,16 +908,18 @@ class _HomePageState extends State<HomePage> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF93b9e1),
+                  backgroundColor: isAvailable 
+                      ? Color(0xFF93b9e1) 
+                      : Colors.grey[400],
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                   padding: EdgeInsets.symmetric(vertical: 12),
                 ),
-                onPressed: () => _borrowItem(itemId),
+                onPressed: isAvailable ? onBorrow : null,
                 child: Text(
-                  'Borrow Item',
+                  isAvailable ? 'Borrow Item' : 'Not Available',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -318,240 +933,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _borrowItem(String itemId) {
-    // TODO: Implement borrow functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Borrow functionality will be implemented'),
-        backgroundColor: Color(0xFF93b9e1),
+  Widget _buildFallbackIcon() {
+    return Container(
+      color: Color(0xFF93b9e1).withOpacity(0.1),
+      child: Icon(
+        Icons.inventory_2,
+        color: Color(0xFF93b9e1),
+        size: 24,
       ),
     );
   }
 }
-
-class SectionHeader extends StatelessWidget {
-  final String title;
-  final VoidCallback? onTap;
-
-  const SectionHeader({super.key, required this.title, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w800),
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded, size: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class LentCircle extends StatelessWidget {
-  final LentItem item;
-  const LentCircle({super.key, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 120, // allows two-line caption
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 76,
-            height: 76,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Color(0xFF93b9e1).withOpacity(0.3),
-                width: 1.0,
-              ),
-            ),
-            child: ClipOval(
-              child: Container(
-                color: const Color(0xFFF2F2F2),
-                child: Image.asset(item.imageUrl, fit: BoxFit.cover),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            item.caption,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class BorrowedCard extends StatelessWidget {
-  final BorrowedItem item;
-  const BorrowedCard({super.key, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 200, // CHANGED: was 173 → wider for text space
-      child: Card(
-        elevation: 0,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // TODO: open details
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(10), // CHANGED: was 8 before
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Color(0xFF93b9e1).withOpacity(0.3),
-                      width: 1.0,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: AspectRatio(
-                      aspectRatio: 3 / 2, // CHANGED: less tall
-                      child: Image.asset(item.imageUrl, fit: BoxFit.contain),//CHANGED: from cover to contain to make sure the picture fits in the box
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8), // CHANGED: was 5 → more breathing room
-
-                // Meta line
-                Text(
-                  'From: ${item.fromName}',
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    fontSize: 14, // CHANGED: was 11
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w500, // ADDED emphasis
-                  ),
-                ),
-
-                const SizedBox(height: 6), // CHANGED: was 3
-
-                // Title (main item name)
-                Text(
-                  item.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.bold, // CHANGED: was w700
-                    fontSize: 18, // CHANGED: was 12
-                  ),
-                ),
-
-                const SizedBox(height: 6), // CHANGED: was 3
-
-                // Duration
-                Text(
-                  item.duration,
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16, // CHANGED: was 11
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/* ---------- Demo data & models ---------- */
-
-class LentItem {
-  final String imageUrl;
-  final String caption;
-  const LentItem({required this.imageUrl, required this.caption});
-}
-
-class BorrowedItem {
-  final String imageUrl;
-  final String fromName;
-  final String title;
-  final String duration; // e.g., "1 week", "6 days"
-  const BorrowedItem({
-    required this.imageUrl,
-    required this.fromName,
-    required this.title,
-    required this.duration,
-  });
-}
-
-const demoLent = <LentItem>[
-  LentItem(
-    imageUrl:
-        'assets/images/Carryon Spinner.webp',
-    caption: 'Global\nCarry-On Spinner',
-  ),
-  LentItem(
-    imageUrl:
-        'assets/images/TheMartian.jpg',
-    caption: 'The Martian –\nHardback',
-  ),
-  LentItem(
-    imageUrl:
-        'assets/images/Diamond Necklace.webp',
-    caption: 'Diamond\nNecklace',
-  ),
-  LentItem(
-    imageUrl:
-        'assets/images/Stroller.webp',
-    caption: 'Foldable Baby\nStroller',
-  ),
-];
-
-const demoBorrowed = <BorrowedItem>[
-  BorrowedItem(
-    imageUrl:
-        'assets/images/Hammer.webp',
-    fromName: 'Dexter',
-    title: "Harbor Freight Engineer's Hammer",
-    duration: '1 week',
-  ),
-  BorrowedItem(
-    imageUrl:
-        'assets/images/boots.jpg',
-    fromName: 'Jesus',
-    title: "Justin Men's Conductor 8\" Boots",
-    duration: '6 days',
-  ),
-  BorrowedItem(
-    imageUrl:
-        'assets/images/Drill.webp',
-    fromName: 'Hannah',
-    title: 'Hercules Compact Drill Kit',
-    duration: '3 days',
-  ),
-];

@@ -89,6 +89,7 @@ class AuthService {
 
     await _items.add({
       'name': name,
+      'desc': desc,
       'ownerId': userProfileRef,
       'isLent': false,
       'borrowerId': null,
@@ -113,7 +114,16 @@ class AuthService {
         .where('ownerId', isEqualTo: userProfileRef)
         .orderBy('name', descending: true)
         .snapshots();
-  }//endregion
+  } //endregion
+
+  //region Available Items for Home Page
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamAvailableItems() {
+    // Stream all items that are not currently lent (available for borrowing)
+    return _items
+        .where('isLent', isEqualTo: false)
+        .orderBy('name')
+        .snapshots();
+  }
 
   //region Borrowing
   Future<void> startBorrow({
