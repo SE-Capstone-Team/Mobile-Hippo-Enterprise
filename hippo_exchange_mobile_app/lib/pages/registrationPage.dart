@@ -54,6 +54,14 @@ class _RegisterPageState extends State<RegistrationPage> {
     final lastName = lastNameController.text.trim();
     final address = addressController.text.trim();
     //region email password complexity
+
+    if(firstName.isEmpty || lastName.isEmpty){
+      setState(() => _error = 'Please enter your first name or last name.');
+    }
+    if(address.isEmpty){
+      setState(() => _error = 'Please enter your home address.');
+
+    }
     if (email.isEmpty || password.isEmpty) {
       setState(() => _error = 'Email and password are required.' );
       return;
@@ -110,7 +118,7 @@ class _RegisterPageState extends State<RegistrationPage> {
         }
       }
     } on Exception catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = AuthService().mapAuthError(e));
     } finally {
       if (mounted) setState(() => _loading = false );
     }//endregion

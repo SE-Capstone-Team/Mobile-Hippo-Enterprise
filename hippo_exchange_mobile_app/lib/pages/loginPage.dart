@@ -50,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     } on Exception catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = AuthService().mapAuthError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
