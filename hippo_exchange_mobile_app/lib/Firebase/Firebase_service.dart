@@ -1,20 +1,26 @@
-import 'dart:ffi';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthService {
   //shortcuts to call
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   static const String kFirestoreDbId = 'inventory-db';
   final _db = FirebaseFirestore.instanceFor(
     app: Firebase.app(),
     databaseId: kFirestoreDbId,
   );
+
   CollectionReference<Map<String, dynamic>> get _items =>
       _db.collection('items');
+
+  CollectionReference<Map<String, dynamic>> get _profiles =>
+      _db.collection('profiles');
 
   // region login and logout process
   Future<UserCredential> emailsignin({
@@ -78,9 +84,9 @@ class AuthService {
   //endregion
 
   //region Lending
-  Future<void> createItem(String name, String desc, Double price) async {
+  Future<void> createItem(String name, String desc,) async {
     final user = _auth.currentUser;
-    final DocumentReference userProfileRef = _db.collection('profiles').doc(user?.uid);
+    final DocumentReference userProfileRef = _profiles.doc(user?.uid);
     final userProfile = await userProfileRef.get();
     final location = userProfile['address'];
     if (user == null) throw Exception('Not signed in');
@@ -88,7 +94,7 @@ class AuthService {
     await _items.add({
       'name': name,
       'desc': desc,
-      'pricePerDay': price,
+      //'pricePerDay': price,
       'ownerId': userProfileRef,
       'isLent': false,
       'borrowerId': null,
@@ -107,7 +113,7 @@ class AuthService {
     }
 
     // Get the DocumentReference to the current user's profile
-    final DocumentReference userProfileRef = _db.collection('profiles').doc(user.uid);
+    final DocumentReference userProfileRef = _profiles.doc(user.uid);
 
     return _items // _items is your CollectionReference<Map<String, dynamic>> to the 'items' collection
         .where('ownerId', isEqualTo: userProfileRef)
@@ -127,13 +133,13 @@ class AuthService {
   //region Borrowing
   Future<void> startBorrow({
     required String itemId,
-    required String borrowerUid,
+    required String borrowerId,
     DateTime? dueAt,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not signed in');
     
-    final DocumentReference borrowerRef = _db.collection('profiles').doc(user.uid);
+    final DocumentReference borrowerId = _profiles.doc(user.uid);
     final itemRef = _items.doc(itemId);
 
     await _db.runTransaction((txn) async {
@@ -148,7 +154,7 @@ class AuthService {
 
       txn.update(itemRef, {
         'isLent': true,
-        'borrowerId': borrowerRef,
+        'borrowerId': borrowerId,
         'borrowedOn': FieldValue.serverTimestamp(),
         'dueAt': dueAt != null ? Timestamp.fromDate(dueAt) : null,
       });
@@ -160,10 +166,10 @@ class AuthService {
     if (user == null) {
       return Stream.empty(); // Or handle appropriately
     }
-    final DocumentReference userProfileRef = _db.collection('profiles').doc(user.uid);
+    final DocumentReference userProfileRef = _profiles.doc(user.uid);
 
       return _items
-          .where('borrowerRef', isEqualTo: userProfileRef)
+          .where('borrowerId', isEqualTo: userProfileRef)
           .orderBy('dueAt', descending: true)
           .snapshots();
   }
