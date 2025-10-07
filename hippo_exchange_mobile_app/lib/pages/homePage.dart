@@ -452,6 +452,24 @@ class _HomePageState extends State<HomePage> {
           itemBuilder: (context, index) {
             final doc = docs[index];
             final data = doc.data();
+            
+            // Add safety check for required fields
+            if (data['name'] == null) {
+              return Container(
+                margin: EdgeInsets.only(bottom: 16),
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: Text(
+                  'Invalid item data (ID: ${doc.id})',
+                  style: TextStyle(color: Colors.red[700]),
+                ),
+              );
+            }
+            
             return FirebaseItemCard(
               itemId: doc.id,
               itemData: data,
@@ -801,23 +819,7 @@ class FirebaseItemCard extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: imageUrl.startsWith('assets/')
-                        ? Image.asset(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildFallbackIcon();
-                            },
-                          )
-                        : (imageUrl.startsWith('http')
-                            ? Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return _buildFallbackIcon();
-                                },
-                              )
-                            : _buildFallbackIcon()),
+                    child: _buildItemImage(imageUrl),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -834,32 +836,7 @@ class FirebaseItemCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      FutureBuilder<DocumentSnapshot>(
-                        future: (itemData['ownerId'] as DocumentReference?)?.get(),
-                        builder: (context, ownerSnapshot) {
-                          if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
-                            final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
-                            final firstName = ownerData?['firstName'] ?? '';
-                            final lastName = ownerData?['lastName'] ?? '';
-                            final fullName = '$firstName $lastName'.trim();
-                            return Text(
-                              'Lender: ${fullName.isNotEmpty ? fullName : 'Unknown'}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF93b9e1),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            );
-                          }
-                          return Text(
-                            'Lender: Loading...',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          );
-                        },
-                      ),
+                      _buildLenderInfo(itemData),
                       const SizedBox(height: 2),
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -940,6 +917,125 @@ class FirebaseItemCard extends StatelessWidget {
         Icons.inventory_2,
         color: Color(0xFF93b9e1),
         size: 24,
+      ),
+    );
+  }
+
+  Widget _buildItemImage(String imageUrl) {
+    // Handle different image URL types safely
+    if (imageUrl.isEmpty || imageUrl == 'null') {
+      return _buildFallbackIcon();
+    }
+    
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackIcon();
+        },
+      );
+    }
+    
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF93b9e1),
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / 
+                    loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackIcon();
+        },
+      );
+    }
+    
+    // Fallback for any other URL format
+    return _buildFallbackIcon();
+  }
+
+  Widget _buildLenderInfo(Map<String, dynamic> itemData) {
+    final ownerId = itemData['ownerId'];
+    
+    // Handle different data types for ownerId
+    if (ownerId == null) {
+      return Text(
+        'Lender: Unknown',
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.grey[600],
+        ),
+      );
+    }
+    
+    // If ownerId is a DocumentReference, fetch the owner data
+    if (ownerId is DocumentReference) {
+      return FutureBuilder<DocumentSnapshot>(
+        future: ownerId.get(),
+        builder: (context, ownerSnapshot) {
+          if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
+            final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
+            final firstName = ownerData?['firstName'] ?? '';
+            final lastName = ownerData?['lastName'] ?? '';
+            final fullName = '$firstName $lastName'.trim();
+            return Text(
+              'Lender: ${fullName.isNotEmpty ? fullName : 'Unknown'}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF93b9e1),
+                fontWeight: FontWeight.w500,
+              ),
+            );
+          }
+          
+          if (ownerSnapshot.hasError) {
+            return Text(
+              'Lender: Error loading',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.red[600],
+              ),
+            );
+          }
+          
+          return Text(
+            'Lender: Loading...',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          );
+        },
+      );
+    }
+    
+    // If ownerId is a String (legacy data), display it directly or show placeholder
+    if (ownerId is String) {
+      return Text(
+        'Lender: ${ownerId.isNotEmpty ? ownerId : 'Unknown'}',
+        style: TextStyle(
+          fontSize: 14,
+          color: Color(0xFF93b9e1),
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+    
+    // Fallback for any other data type
+    return Text(
+      'Lender: Unknown',
+      style: TextStyle(
+        fontSize: 14,
+        color: Colors.grey[600],
       ),
     );
   }
