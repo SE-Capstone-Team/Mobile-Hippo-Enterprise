@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFF5F5F5), // Off-white background
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: false,
@@ -617,6 +617,7 @@ class ItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white, // White card background
       elevation: 3,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
@@ -754,6 +755,7 @@ class FirebaseItemCard extends StatelessWidget {
     final imageUrl = itemData['picture'] ?? 'assets/images/HippoExchangeLogo.png';
 
     return Card(
+      color: Colors.white, // White card background
       elevation: 3,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
