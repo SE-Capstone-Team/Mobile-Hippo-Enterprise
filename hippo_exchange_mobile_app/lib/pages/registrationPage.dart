@@ -127,27 +127,44 @@ class _RegisterPageState extends State<RegistrationPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         centerTitle: true,
-        title: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'Hippo ',
-                style: TextStyle(
-                  fontSize: 40.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Hippo Image
+            Container(
+              width: 50,
+              height: 50,
+              child: Image.asset(
+                'assets/images/HippoExchangeLogo.png',
+                fit: BoxFit.contain,
               ),
-              TextSpan(
-                text: 'Exchange',
-                style: TextStyle(
-                  fontSize: 40.0,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF93b9e1),
-                ),
+            ),
+            const SizedBox(width: 12),
+            // Centered Title Text
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Hippo ',
+                    style: TextStyle(
+                      fontSize: 32.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Exchange',
+                    style: TextStyle(
+                      fontSize: 32.0,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF93b9e1),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
 
@@ -164,31 +181,7 @@ class _RegisterPageState extends State<RegistrationPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 5), // Reduced from 10 to move hippo up
-                  // Static Hippo Logo - positioned higher
-                  Container(
-                    width: 180,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Image.asset(
-                        'assets/images/HippoExchangeLogo.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20), // Reduced spacing after logo
+                  const SizedBox(height: 20), // Reduced spacing to move card up
 
                   // Card containing registration fields
                   Card(
