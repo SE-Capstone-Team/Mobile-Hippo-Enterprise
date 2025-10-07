@@ -191,7 +191,7 @@ class AuthService {
     if (e is FirebaseAuthException) {
       switch (e.code) {
         case 'invalid-credential': return 'Email or password is Incorrect!';
-        case 'channel-error': return 'Missing Parameter';
+        case 'channel-error': return 'Missing Email or password';
         case 'invalid-email': return 'That email address is malformed.';
         case 'user-disabled': return 'This account has been disabled.';
         case 'user-not-found': return 'No user found with that email.';
