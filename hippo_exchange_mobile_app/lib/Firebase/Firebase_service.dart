@@ -27,7 +27,6 @@ class AuthService {
       email: email,
       password: password,
     );
-    final uid = cred.user!.uid;
     return cred;
   }
 
@@ -69,9 +68,9 @@ class AuthService {
     );
     await _db.collection('profiles').doc(cred.user!.uid).set({
       'email': email,
-      'firstName': firstName ?? '',
-      'lastName': lastName ?? '',
-      'address': address ?? '',
+      'firstName': firstName,
+      'lastName': lastName,
+      'address': address,
     }, SetOptions(merge: true));
     await cred.user!.sendEmailVerification();
 
@@ -83,25 +82,21 @@ class AuthService {
   //region Lending
   Future<void> createItem(String name, String desc) async {
     final user = _auth.currentUser;
+    final DocumentReference userProfileRef = _db.collection('profiles').doc(user?.uid);
+    final userProfile = await userProfileRef.get();
+    final location = userProfile['address'];
     if (user == null) throw Exception('Not signed in');
-
-
-    final DocumentReference userProfileRef = _db.collection('profiles').doc(user.uid);
-    final String ownerDisplayName = user.displayName ?? 'Unknown Owner'; // Get display name
 
     await _items.add({
       'name': name,
-      'ownerRef': userProfileRef,
-      'ownerDisplayName': ownerDisplayName,
+      'ownerId': userProfileRef,
       'isLent': false,
-      'borrowerRef': null,
+      'borrowerId': null,
       'dueAt': null,
-      'createdAt': FieldValue.serverTimestamp(),
-      'isLent': false,
-      'isPublic': true,
-      'startedAt': null,
-      'desc': desc,
-    });
+      'borrowedOn': null,
+      'location': location,
+      'picture': null,
+      });
 
   }
 
@@ -115,8 +110,8 @@ class AuthService {
     final DocumentReference userProfileRef = _db.collection('profiles').doc(user.uid);
 
     return _items // _items is your CollectionReference<Map<String, dynamic>> to the 'items' collection
-        .where('ownerRef', isEqualTo: userProfileRef)
-        .orderBy('createdAt', descending: true)
+        .where('ownerId', isEqualTo: userProfileRef)
+        .orderBy('name', descending: true)
         .snapshots();
   }//endregion
 
@@ -144,8 +139,8 @@ class AuthService {
 
       txn.update(itemRef, {
         'isLent': true,
-        'borrowerRef': borrowerRef,
-        'startedAt': FieldValue.serverTimestamp(),
+        'borrowerId': borrowerRef,
+        'borrowedOn': FieldValue.serverTimestamp(),
         'dueAt': dueAt != null ? Timestamp.fromDate(dueAt) : null,
       });
     });
@@ -160,7 +155,7 @@ class AuthService {
 
       return _items
           .where('borrowerRef', isEqualTo: userProfileRef)
-          .orderBy('startedAt', descending: true)
+          .orderBy('dueAt', descending: true)
           .snapshots();
   }
 
@@ -170,12 +165,13 @@ class AuthService {
     await _db.runTransaction((txn) async {
       final itemSnap = await txn.get(itemRef);
       if (!itemSnap.exists) throw Exception('Item not found');
-      final item = itemSnap.data() as Map<String, dynamic>;
 
       // Clear item’s active state
       txn.update(itemRef, {
         'isLent': false,
-        'borrowerRef': null,
+        'borrowerId': null,
+        'borrowedOn': null,
+        'dueAt': null,
       });
     });
   } //endregion
