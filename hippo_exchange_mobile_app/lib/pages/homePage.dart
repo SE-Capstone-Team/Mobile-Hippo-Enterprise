@@ -1,31 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hippo_exchange_mobile_app/pages/borrowedPage.dart';
-import 'package:hippo_exchange_mobile_app/pages/myItemsPage.dart';
-
-
-void main() => runApp(const BorrowlyApp());
-
-class BorrowlyApp extends StatelessWidget {
-  const BorrowlyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Hippo Exchange',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: Colors.white,
-        textTheme: const TextTheme(
-          titleMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-          bodyMedium: TextStyle(fontSize: 14),
-          bodySmall: TextStyle(fontSize: 12, color: Colors.black54),
-        ),
-      ),
-      home: const HomePage(),
-    );
-  }
-}
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -35,20 +10,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // Optional AppBar (mock shows just status bar; SafeArea handles it)
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-        SliverToBoxAdapter(
-        child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: RichText(
-
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        elevation: 0,
+        title: RichText(
           text: TextSpan(
             children: [
               TextSpan(
@@ -60,68 +39,292 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               TextSpan(
-                  text: 'Exchange',
+                text: 'Exchange: ',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
                 ),
               ),
+              TextSpan(
+                text: 'Home',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
             ],
           ),
         ),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0),
+          child: Container(
+            color: Color(0xFF93b9e1).withOpacity(0.2),
+            height: 1.0,
+          ),
+        ),
       ),
-    ),
-
-
-
-            // ---- Items Lent ----
-            SliverToBoxAdapter(
-              child: SectionHeader(
-                title: 'Items Lent',
-                onTap: () {
-                  // TODO: push to items lent screen
-
-                },
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Search Bar
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Color(0xFF93b9e1).withOpacity(0.3)),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 140, // enough for circle + caption
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: demoLent.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 16),
-                  itemBuilder: (context, i) => LentCircle(item: demoLent[i]),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search items...',
+                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  prefixIcon: Icon(Icons.search, color: Color(0xFF93b9e1)),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-            // ---- Items Borrowed ----
-            SliverToBoxAdapter(
-              child: SectionHeader(
-                title: 'Items Borrowed',
-                onTap: () {
-                  // TODO: push to items borrowed screen
+            const SizedBox(height: 24),
+            
+            // Subtitle
+            Text(
+              'Items for you',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Items List
+            Expanded(
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: AuthService().streamAvailableItems(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator(color: Color(0xFF93b9e1)));
+                  }
+                  
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Error loading items: ${snapshot.error}',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    );
+                  }
+                  
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No items available',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  
+                  var items = snapshot.data!.docs;
+                  
+                  // Filter items based on search query
+                  if (_searchQuery.isNotEmpty) {
+                    items = items.where((doc) {
+                      final data = doc.data();
+                      final name = (data['name'] ?? '').toString().toLowerCase();
+                      return name.contains(_searchQuery);
+                    }).toList();
+                  }
+                  
+                  if (items.isEmpty && _searchQuery.isNotEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No items found for "$_searchQuery"',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final doc = items[index];
+                      final data = doc.data();
+                      return _buildItemCard(doc.id, data);
+                    },
+                  );
                 },
               ),
             ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (context, i) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: BorrowedCard(item: demoBorrowed[i]),
-                ),
-                childCount: demoBorrowed.length,
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
           ],
         ),
       ),
+    );
+  }
 
+  Widget _buildItemCard(String itemId, Map<String, dynamic> data) {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Color(0xFF93b9e1).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.inventory_2,
+                    color: Color(0xFF93b9e1),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data['name'] ?? 'Unnamed Item',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      FutureBuilder<DocumentSnapshot>(
+                        future: (data['ownerId'] as DocumentReference?)?.get(),
+                        builder: (context, ownerSnapshot) {
+                          if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
+                            final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
+                            final firstName = ownerData?['firstName'] ?? '';
+                            final lastName = ownerData?['lastName'] ?? '';
+                            final fullName = '$firstName $lastName'.trim();
+                            return Text(
+                              'Lender: ${fullName.isNotEmpty ? fullName : 'Unknown'}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF93b9e1),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          }
+                          return Text(
+                            'Lender: Loading...',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (data['desc'] != null && data['desc'].toString().isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Description:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                data['desc'] ?? '',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  height: 1.4,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF93b9e1),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                ),
+                onPressed: () => _borrowItem(itemId),
+                child: Text(
+                  'Borrow Item',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _borrowItem(String itemId) {
+    // TODO: Implement borrow functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Borrow functionality will be implemented'),
+        backgroundColor: Color(0xFF93b9e1),
+      ),
     );
   }
 }
