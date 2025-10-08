@@ -41,18 +41,22 @@ class AuthService {
   // Update user profile information
   //firstname lastname
   Future<void> updateUserProfile({
-    String? displayName,
+    String? firstName, String? lastName,
   }) async {
     final user = _auth.currentUser;
     if (user != null) {
-      if (displayName != null) {
-        await user.updateDisplayName(displayName);
+      if (firstName != null) {
+        await user.updateDisplayName(firstName);
+      }
+      if (lastName != null) {
+        await user.updateDisplayName(lastName);
       }
       
       // Update additional profile info in Firestore
       await _db.collection('profiles').doc(user.uid).update({
-        if (displayName != null) 'displayName': displayName,
-        'updatedAt': FieldValue.serverTimestamp(),
+        if (firstName != null || lastName != null)
+          'firstName': firstName,
+          'lastName': lastName,
       });
     }
   }

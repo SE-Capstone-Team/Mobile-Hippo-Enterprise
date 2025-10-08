@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
@@ -16,7 +18,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool _isEditing = false;
   
   // User data from Firebase
-  String name = "";
+  String firstName = "";
+  String lastName = "";
   String email = "";
   String? accountCreationDate;
   
@@ -43,18 +46,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Function to load current user data from Firebase
   Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final _db = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: AuthService.kFirestoreDbId);
+    final DocumentReference userProfileRef = _db.collection('profiles').doc(user?.uid);
+    final userProfile = await userProfileRef.get();
+    final firstName = userProfile['firstName'];
+    final lastName = userProfile['lastName'];
+    final address = userProfile['address'];
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         setState(() {
-          name = user.displayName ?? "No name set";
           email = user.email ?? "No email";
           accountCreationDate = user.metadata.creationTime?.toString().split(' ')[0] ?? "Unknown";
           _isLoading = false;
         });
         
         // Update text controllers with real data
-        _nameController.text = name;
+        _firstNameController.text = firstName;
+        _lastNameController.text = lastName;
         _emailController.text = email;
       }
     } catch (e) {
@@ -70,8 +81,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   // Controllers for editing
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _ = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+
+
 
   @override
   void initState() {
@@ -84,11 +99,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
       // Save changes when switching back from edit mode
       try {
         // Update local variables (only name since email is hidden)
-        name = _nameController.text;
+        firstName = _firstNameController.text;
+        lastName = _lastNameController.text;
         
         // Update Firebase profile
         await AuthService().updateUserProfile(
-          displayName: name.isNotEmpty ? name : null,
+          firstName: firstName.isNotEmpty ? firstName : null,
+          lastName: lastName.isNotEmpty ? lastName : null,
         );
         
         if (mounted) {
@@ -255,7 +272,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             padding: const EdgeInsets.all(32),
             child: Column(
               children: [
-                _buildInfoRow(Icons.person, "Name", name),
+                _buildInfoRow(Icons.person, "Name", firstName),
                 const SizedBox(height: 24),
                 _buildInfoRow(Icons.email, "Email", email),
                 if (accountCreationDate != null) ...[
@@ -316,7 +333,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 30),
-            _buildEditField("Name", _nameController),
+            _buildEditField("Name", _firstNameController),
             const SizedBox(height: 30),
             
             // Save button - larger and below edit fields
