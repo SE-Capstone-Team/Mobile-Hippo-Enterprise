@@ -67,6 +67,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _firstNameController.text = firstName;
         _lastNameController.text = lastName;
         _emailController.text = email;
+
       }
     } catch (e) {
       setState(() {
@@ -81,7 +82,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   // Controllers for editing
-  final TextEditingController _ = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();

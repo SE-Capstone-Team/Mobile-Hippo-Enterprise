@@ -50,11 +50,6 @@ class BasePage extends StatefulWidget {
 class _BasePageState extends State<BasePage> {
   int _currentIndex = 0;
 
-  void _goToRegistration() {
-    setState(() {
-      _currentIndex = 1;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
