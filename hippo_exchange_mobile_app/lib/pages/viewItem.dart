@@ -8,11 +8,13 @@ import 'package:firebase_core/firebase_core.dart';
 class ViewItemPage extends StatefulWidget {
   final String itemId;
   final Map<String, dynamic>? itemData; // Optional pre-loaded data
+  final bool showBorrowButton; // Whether to show borrow functionality
   
   const ViewItemPage({
     super.key, 
     required this.itemId,
     this.itemData,
+    this.showBorrowButton = false, // Default to false
   });
 
   @override
@@ -56,6 +58,84 @@ class _ViewItemPageState extends State<ViewItemPage> {
           SnackBar(content: Text('Error loading item: $e')),
         );
       }
+    }
+  }
+
+  Future<void> _borrowItem() async {
+    try {
+      // TODO: Implement actual borrowing logic with Firebase
+      // For now, show a confirmation dialog and success message
+      
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Confirm Borrow'),
+            content: Text('Are you sure you want to borrow "${_itemData!['name']}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF93B9E1),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('Borrow'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmed == true) {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: CircularProgressIndicator(
+              color: const Color(0xFF93B9E1),
+            ),
+          ),
+        );
+
+        // Simulate API call delay
+        await Future.delayed(Duration(seconds: 2));
+
+        // Close loading dialog
+        Navigator.of(context).pop();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Successfully borrowed "${_itemData!['name']}"!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // Go back to home page
+        Navigator.of(context).pop();
+
+        // TODO: Implement actual Firebase borrowing logic:
+        // 1. Update item status to borrowed
+        // 2. Set borrower information
+        // 3. Set borrow date and due date
+        // 4. Update Firestore document
+      }
+    } catch (e) {
+      // Close any open dialogs
+      Navigator.of(context).pop();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error borrowing item: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -251,6 +331,33 @@ class _ViewItemPageState extends State<ViewItemPage> {
           ),
           
           const SizedBox(height: 24),
+          
+          // Borrow Button (only show if from home page and item is available)
+          if (widget.showBorrowButton && !isLent) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF93B9E1),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 2,
+                ),
+                onPressed: () => _borrowItem(),
+                child: const Text(
+                  'Borrow This Item',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
         ],
       ),
     );
