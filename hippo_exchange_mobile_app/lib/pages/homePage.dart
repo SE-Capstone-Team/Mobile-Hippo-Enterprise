@@ -315,7 +315,6 @@ class FirebaseItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = itemData['name'] ?? 'Unnamed Item';
     final description = itemData['desc'] ?? '';
-    final imageUrl = itemData['picture'] ?? 'assets/images/HippoExchangeLogo.png';
 
     return Card(
       color: Colors.white, // White card background
@@ -344,7 +343,7 @@ class FirebaseItemCard extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: _buildItemImage(imageUrl),
+                    child: _buildFallbackIcon(),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -424,48 +423,6 @@ class FirebaseItemCard extends StatelessWidget {
         size: 24,
       ),
     );
-  }
-
-  Widget _buildItemImage(String imageUrl) {
-    // Handle different image URL types safely
-    if (imageUrl.isEmpty || imageUrl == 'null') {
-      return _buildFallbackIcon();
-    }
-    
-    if (imageUrl.startsWith('assets/')) {
-      return Image.asset(
-        imageUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackIcon();
-        },
-      );
-    }
-    
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF93b9e1),
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / 
-                    loadingProgress.expectedTotalBytes!
-                  : null,
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildFallbackIcon();
-        },
-      );
-    }
-    
-    // Fallback for any other URL format
-    return _buildFallbackIcon();
   }
 
   Widget _buildLenderInfo(Map<String, dynamic> itemData) {

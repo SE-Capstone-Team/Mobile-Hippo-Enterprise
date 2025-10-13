@@ -3,8 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
 
 class AuthService {
   //region shortcuts to call in Firebase Service
@@ -14,7 +12,6 @@ class AuthService {
     app: Firebase.app(),
     databaseId: kFirestoreDbId,
   );
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   CollectionReference<Map<String, dynamic>> get _items =>
       _db.collection('items');
@@ -91,7 +88,7 @@ class AuthService {
   //endregion
 
   //region Lending
-  Future<void> createItem(String name, String desc, String? imageUrl) async {
+  Future<void> createItem(String name, String desc) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not signed in');
 
@@ -108,7 +105,6 @@ class AuthService {
       'dueAt': null,
       'borrowedOn': null,
       'location': location,
-      'picture': imageUrl, // Use the passed imageUrl
     });
   }
 
@@ -207,37 +203,6 @@ class AuthService {
       updates['updatedAt'] = FieldValue.serverTimestamp();
       await _items.doc(id).set(updates);
     } //endregion
-
-    //region Picture Functions
-    Future<String?> pickAndUploadItemPhoto({
-      required String name,
-      required File file, // Accept a File object
-    }) async {
-      final user = _auth.currentUser;
-      if (user == null) throw Exception('Not signed in!');
-
-      final safeName = name
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^a-z0-9_-]'), '_')
-          .replaceAll(RegExp(r'_+'), '_');
-
-      final storagePath = 'users/${user.uid}/items/${safeName}_${DateTime
-          .now()
-          .millisecondsSinceEpoch}.jpg';
-      final ref = _storage.ref(storagePath);
-
-      final uploadTask = ref.putFile(
-        file, // Use the provided file
-        SettableMetadata(cacheControl: 'public, max-age=31536000'),
-      );
-
-      final snapshot = await uploadTask.whenComplete(() {});
-      final downloadURL = await snapshot.ref.getDownloadURL();
-
-      // No longer returning a map, just the URL
-      return downloadURL;
-    }
-
 
     //region laymen's termed firebase errors
     String mapAuthError(Object e) {
