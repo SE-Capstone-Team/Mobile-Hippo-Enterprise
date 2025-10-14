@@ -115,17 +115,6 @@ class _LoginPageState extends State<LoginPage> {
                       Container(
                         width: 180,
                         height: 180,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(10),
                           child: Image.asset(
