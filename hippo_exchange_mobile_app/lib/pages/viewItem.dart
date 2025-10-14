@@ -160,6 +160,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
     final itemDesc = _itemData!['desc'] ?? 'No description available';
     final isLent = _itemData!['isLent'] == true;
     final ownerDisplayName = _itemData!['ownerDisplayName'] ?? 'Unknown Owner';
+    final imageUrl = _itemData!['picture'];
     
     // Format dates
     String? borrowedDate;
@@ -196,11 +197,34 @@ class _ViewItemPageState extends State<ViewItemPage> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: const Icon(
-                Icons.image,
-                size: 80,
-                color: Color(0xFF93B9E1),
-              ),
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes !=
+                                    null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(
+                        Icons.image,
+                        size: 80,
+                        color: Color(0xFF93B9E1),
+                      ),
+                    )
+                  : const Icon(
+                      Icons.image,
+                      size: 80,
+                      color: Color(0xFF93B9E1),
+                    ),
             ),
           ),
           

@@ -109,6 +109,7 @@ class _LendingPageState extends State<LendingPage> {
                 if (isLent && data['borrowerDisplayName'] != null) {
                   borrowerInfo = data['borrowerDisplayName'];
                 }
+                final imageUrl = data['picture'];
 
                 return GestureDetector(
                   onTap: () {
@@ -163,11 +164,38 @@ class _LendingPageState extends State<LendingPage> {
                                 width: 2,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.inventory_2,
-                              color: Colors.white,
-                              size: 28,
-                            ),
+                            child: ClipOval(
+                                      child: imageUrl != null
+                                          ? Image.network(
+                                              imageUrl,
+                                              fit: BoxFit.cover,
+                                              width: 60,
+                                              height: 60,
+                                              loadingBuilder: (context, child,
+                                                  loadingProgress) {
+                                                if (loadingProgress == null) {
+                                                  return child;
+                                                }
+                                                return const Center(
+                                                    child: CircularProgressIndicator(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<Color>(
+                                                          Colors.white),
+                                                ));
+                                              },
+                                              errorBuilder:
+                                                  (context, error, stackTrace) =>
+                                                      const Icon(
+                                                Icons.inventory_2,
+                                                color: Colors.white,
+                                                size: 28,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.inventory_2,
+                                              color: Colors.white,
+                                              size: 28,
+                                            )),
                           ),
                           const SizedBox(width: 16),
                           

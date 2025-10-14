@@ -114,6 +114,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 final itemName = data['name'] ?? 'Unnamed Item';
                 final ownerName = data['ownerDisplayName'] ?? 'Owner';
                 final itemDesc = data['desc'] ?? '';
+                final imageUrl = data['picture'];
 
                 final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
                 final Timestamp? startedAtTimestamp = data['startedAt'] as Timestamp?;
@@ -184,11 +185,38 @@ class _BorrowingPageState extends State<BorrowingPage> {
                                 width: 2,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.shopping_bag,
-                              color: Colors.white,
-                              size: 28,
-                            ),
+                            child: ClipOval(
+                                      child: imageUrl != null
+                                          ? Image.network(
+                                              imageUrl,
+                                              fit: BoxFit.cover,
+                                              width: 60,
+                                              height: 60,
+                                              loadingBuilder: (context, child,
+                                                  loadingProgress) {
+                                                if (loadingProgress == null) {
+                                                  return child;
+                                                }
+                                                return const Center(
+                                                    child: CircularProgressIndicator(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<Color>(
+                                                          Colors.white),
+                                                ));
+                                              },
+                                              errorBuilder:
+                                                  (context, error, stackTrace) =>
+                                                      const Icon(
+                                                Icons.inventory_2,
+                                                color: Colors.white,
+                                                size: 28,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.inventory_2,
+                                              color: Colors.white,
+                                              size: 28,
+                                            )),
                           ),
                           const SizedBox(width: 16),
                           
