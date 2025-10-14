@@ -134,37 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      // Static positioned items in star pattern
-                      // Top item (12 o'clock)
-                      Positioned(
-                        top: 20,
-                        left: 130,
-                        child: _buildStaticItem(),
-                      ),
-                      // Top right item (2 o'clock)
-                      Positioned(
-                        top: 60,
-                        right: 50,
-                        child: _buildStaticItem(),
-                      ),
-                      // Bottom right item (4 o'clock)
-                      Positioned(
-                        bottom: 60,
-                        right: 50,
-                        child: _buildStaticItem(),
-                      ),
-                      // Bottom left item (8 o'clock)
-                      Positioned(
-                        bottom: 60,
-                        left: 50,
-                        child: _buildStaticItem(),
-                      ),
-                      // Top left item (10 o'clock)
-                      Positioned(
-                        top: 60,
-                        left: 50,
-                        child: _buildStaticItem(),
-                      ),
+
                     ],
                   ),
                 ),
