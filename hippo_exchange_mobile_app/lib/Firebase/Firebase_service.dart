@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 
 class AuthService {
   //region shortcuts to call in Firebase Service
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   static const String kFirestoreDbId = 'inventory-db';
   final _db = FirebaseFirestore.instanceFor(
     app: Firebase.app(),
@@ -88,10 +90,19 @@ class AuthService {
   //endregion
 
   //region Lending
-  Future<void> createItem(String name, String desc) async {
+  Future<String> _uploadImage(File image) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not signed in');
+    final storageRef = _storage.ref().child('item_images').child('${user.uid}-${DateTime.now().toIso8601String()}');
+    final uploadTask = await storageRef.putFile(image);
+    return await uploadTask.ref.getDownloadURL();
+  }
+
+  Future<void> createItem(String name, String desc, File image) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not signed in');
 
+    final imageUrl = await _uploadImage(image);
     final DocumentReference userProfileRef = _profiles.doc(user.uid);
     final userProfile = await userProfileRef.get();
     final location = userProfile['address'];
@@ -99,6 +110,7 @@ class AuthService {
     await _items.add({
       'name': name,
       'desc': desc,
+      'picture': imageUrl,
       'ownerId': userProfileRef,
       'isLent': false,
       'borrowerId': null,
