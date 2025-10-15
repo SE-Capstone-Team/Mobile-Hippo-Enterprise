@@ -5,6 +5,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 
+// NEW: notifications imports
+import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
+import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+
 //tasks
 //Step 1: pull from items database
 //step 2: display information in real time
@@ -14,7 +18,6 @@ import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 class BorrowingPage extends StatefulWidget {
   const BorrowingPage({super.key});
 
-
   @override
   State<BorrowingPage> createState() => _BorrowingPageState();
 }
@@ -22,13 +25,12 @@ class BorrowingPage extends StatefulWidget {
 class _BorrowingPageState extends State<BorrowingPage> {
   late final FirebaseFirestore db;
 
-
   @override
   void initState() {
     super.initState();
     db = FirebaseFirestore.instanceFor(
-        app: Firebase.app(),
-        databaseId: 'inventory-db',
+      app: Firebase.app(),
+      databaseId: 'inventory-db',
     );
   }
 
@@ -77,13 +79,54 @@ class _BorrowingPageState extends State<BorrowingPage> {
             height: 1.0,
           ),
         ),
+
+        // NEW: Notification Bell with unread badge
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF93b9e1),
-            ),
+          FutureBuilder<int>(
+            future: NotificationService.instance.getUnreadCount(),
+            builder: (context, snap) {
+              final unread = snap.data ?? 0;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    tooltip: 'Notifications',
+                    icon: const Icon(Icons.notifications),
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsInboxPage(),
+                        ),
+                      );
+                      if (mounted) setState(() {}); // refresh badge on return
+                    },
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -103,7 +146,6 @@ class _BorrowingPageState extends State<BorrowingPage> {
 
           debugPrint("BorrowingPage: Found ${docs.length} borrowed items.");
 
-
           return ListView.separated(
               itemCount: docs.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
@@ -118,18 +160,20 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
                 final Timestamp? borrowedOnTimestamp = data['borrowedOn'] as Timestamp?;
 
-                String? borrowedDate;
-                String? dueDate;
-                
-                if (borrowedOnTimestamp != null) {
-                  final borrowedDateTime = borrowedOnTimestamp.toDate().toLocal();
-                  borrowedDate = "${borrowedDateTime.year}-${borrowedDateTime.month.toString().padLeft(2, '0')}-${borrowedDateTime.day.toString().padLeft(2, '0')}";
-                }
-                
-                if (dueAtTimestamp != null) {
-                  final dueDateTime = dueAtTimestamp.toDate().toLocal();
-                  dueDate = "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
-                }
+              String? startedDate;
+              String? dueDate;
+
+              if (startedAtTimestamp != null) {
+                final startedDateTime = startedAtTimestamp.toDate().toLocal();
+                startedDate =
+                "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
+              }
+
+              if (dueAtTimestamp != null) {
+                final dueDateTime = dueAtTimestamp.toDate().toLocal();
+                dueDate =
+                "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
+              }
 
                 return GestureDetector(
                   onTap: () {
@@ -564,3 +608,4 @@ class _BorrowingPageState extends State<BorrowingPage> {
     );
   }
 }
+

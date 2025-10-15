@@ -5,6 +5,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 
+// NEW: notifications imports
+import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
+import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -72,6 +76,58 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+
+        // NEW: notification bell with unread badge
+        actions: [
+          FutureBuilder<int>(
+            future: NotificationService.instance.getUnreadCount(),
+            builder: (context, snap) {
+              final unread = snap.data ?? 0;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    tooltip: 'Notifications',
+                    icon: const Icon(Icons.notifications),
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsInboxPage(),
+                        ),
+                      );
+                      // If you want the badge to refresh immediately when you return:
+                      if (mounted) setState(() {});
+                    },
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
           child: Container(
@@ -90,7 +146,8 @@ class _HomePageState extends State<HomePage> {
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Color(0xFF93b9e1).withOpacity(0.3)),
+                border:
+                Border.all(color: Color(0xFF93b9e1).withOpacity(0.3)),
               ),
               child: TextField(
                 controller: _searchController,
@@ -102,14 +159,16 @@ class _HomePageState extends State<HomePage> {
                 decoration: InputDecoration(
                   hintText: 'Search items...',
                   hintStyle: TextStyle(color: Colors.grey[600]),
-                  prefixIcon: Icon(Icons.search, color: Color(0xFF93b9e1)),
+                  prefixIcon:
+                  Icon(Icons.search, color: Color(0xFF93b9e1)),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Subtitle
             Text(
               'Items for you',
@@ -120,7 +179,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Items List
             Expanded(
               child: _buildFirebaseItemsList(),
@@ -154,7 +213,7 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         }
-        
+
         if (snapshot.hasError) {
           return Center(
             child: Column(
@@ -196,7 +255,7 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         }
-        
+
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(
             child: Column(
@@ -304,7 +363,7 @@ class _HomePageState extends State<HomePage> {
           itemBuilder: (context, index) {
             final doc = filteredDocs[index];
             final data = doc.data();
-            
+
             // Add safety check for required fields
             if (data['name'] == null) {
               return Container(
@@ -321,7 +380,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             }
-            
+
             return FirebaseItemCard(
               itemId: doc.id,
               itemData: data,
@@ -532,7 +591,7 @@ class FirebaseItemCard extends StatelessWidget {
         ),
       );
     }
-    
+
     // If ownerId is a DocumentReference, fetch the owner data
     if (ownerId is DocumentReference) {
       return FutureBuilder<String>(
@@ -548,7 +607,7 @@ class FirebaseItemCard extends StatelessWidget {
               ),
             );
           }
-          
+
           if (ownerSnapshot.hasError) {
             debugPrint("HomePage: Owner lookup error: ${ownerSnapshot.error}");
             return Text(
@@ -559,7 +618,7 @@ class FirebaseItemCard extends StatelessWidget {
               ),
             );
           }
-          
+
           return Text(
             'Lender: Loading...',
             style: TextStyle(
@@ -570,7 +629,7 @@ class FirebaseItemCard extends StatelessWidget {
         },
       );
     }
-    
+
     // If ownerId is a String (legacy data), display it directly or show placeholder
     if (ownerId is String) {
       return Text(
@@ -582,7 +641,7 @@ class FirebaseItemCard extends StatelessWidget {
         ),
       );
     }
-    
+
     // Fallback for any other data type
     return Text(
       'Lender: Unknown',
