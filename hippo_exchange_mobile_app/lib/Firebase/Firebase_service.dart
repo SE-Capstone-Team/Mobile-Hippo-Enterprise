@@ -138,6 +138,7 @@ class AuthService {
     //region Available Items for Home Page
     Stream<QuerySnapshot<Map<String, dynamic>>> streamAvailableItems() {
       // Stream all items that are not currently lent (available for borrowing)
+      // Note: Filtering for current user's items will be done in the UI layer
       return _items
           .where('isLent', isEqualTo: false)
           .orderBy('name')
@@ -147,13 +148,12 @@ class AuthService {
     //region Borrowing
     Future<void> startBorrow({
       required String itemId,
-      required String borrowerId,
       DateTime? dueAt,
     }) async {
       final user = _auth.currentUser;
       if (user == null) throw Exception('Not signed in');
 
-      final DocumentReference borrowerId = _profiles.doc(user.uid);
+      final DocumentReference borrowerRef = _profiles.doc(user.uid);
       final itemRef = _items.doc(itemId);
 
       await _db.runTransaction((txn) async {
@@ -165,10 +165,16 @@ class AuthService {
         if (item['isLent'] == true) {
           throw Exception('Item already lent');
         }
+        
+        // Check if user is trying to borrow their own item
+        final ownerId = item['ownerId'];
+        if (ownerId is DocumentReference && ownerId.id == user.uid) {
+          throw Exception('You cannot borrow your own item');
+        }
 
         txn.update(itemRef, {
           'isLent': true,
-          'borrowerId': borrowerId,
+          'borrowerId': borrowerRef,
           'borrowedOn': FieldValue.serverTimestamp(),
           'dueAt': dueAt != null ? Timestamp.fromDate(dueAt) : null,
         });

@@ -250,28 +250,6 @@ class _RegisterPageState extends State<RegistrationPage> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Address
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Address",
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: addressController,
-                            decoration: InputDecoration(
-                              hintText: "Enter your address",
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
                           // Email
                           Align(
                             alignment: Alignment.centerLeft,
@@ -285,6 +263,28 @@ class _RegisterPageState extends State<RegistrationPage> {
                             controller: emailController,
                             decoration: InputDecoration(
                               hintText: "Enter your email",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Address
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Address",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: addressController,
+                            decoration: InputDecoration(
+                              hintText: "Enter your address",
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),

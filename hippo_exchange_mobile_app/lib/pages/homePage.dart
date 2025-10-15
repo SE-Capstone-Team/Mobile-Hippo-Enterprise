@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 
@@ -14,6 +16,17 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final AuthService _authService = AuthService();
+  
+  late final FirebaseFirestore db;
+
+  @override
+  void initState() {
+    super.initState();
+    db = FirebaseFirestore.instanceFor(
+      app: Firebase.app(),
+      databaseId: 'inventory-db',
+    );
+  }
 
   @override
   void dispose() {
@@ -215,20 +228,32 @@ class _HomePageState extends State<HomePage> {
           );
         }
         
-        var docs = snapshot.data!.docs;
+        // Filter docs to exclude items that match the search query and exclude current user's items
+        final currentUser = FirebaseAuth.instance.currentUser;
+        final filteredDocs = snapshot.data!.docs.where((doc) {
+          final data = doc.data();
+          final itemName = (data['name'] ?? '').toLowerCase();
+          final itemDesc = (data['desc'] ?? '').toLowerCase();
+          
+          // Check if item matches search query
+          final matchesSearch = _searchQuery.isEmpty || 
+              itemName.contains(_searchQuery) || 
+              itemDesc.contains(_searchQuery);
+          
+          // Check if item is not owned by current user
+          bool notOwnedByCurrentUser = true;
+          if (currentUser != null) {
+            final ownerId = data['ownerId'];
+            if (ownerId is DocumentReference) {
+              // Compare the document ID from the reference
+              notOwnedByCurrentUser = ownerId.id != currentUser.uid;
+            }
+          }
+          
+          return matchesSearch && notOwnedByCurrentUser;
+        }).toList();
         
-        // Filter items based on search query
-        if (_searchQuery.isNotEmpty) {
-          docs = docs.where((doc) {
-            final data = doc.data();
-            final name = (data['name'] ?? '').toString().toLowerCase();
-            final desc = (data['desc'] ?? '').toString().toLowerCase();
-            return name.contains(_searchQuery.toLowerCase()) ||
-                   desc.contains(_searchQuery.toLowerCase());
-          }).toList();
-        }
-        
-        if (docs.isEmpty && _searchQuery.isNotEmpty) {
+        if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -251,10 +276,33 @@ class _HomePageState extends State<HomePage> {
           );
         }
         
+        if (filteredDocs.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'No available items to borrow',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        
         return ListView.builder(
-          itemCount: docs.length,
+          itemCount: filteredDocs.length,
           itemBuilder: (context, index) {
-            final doc = docs[index];
+            final doc = filteredDocs[index];
             final data = doc.data();
             
             // Add safety check for required fields
@@ -292,6 +340,7 @@ class _HomePageState extends State<HomePage> {
         builder: (context) => ViewItemPage(
           itemId: itemId,
           itemData: data,
+          showBorrowButton: true, // Enable borrowing from home page
         ),
       ),
     );
@@ -445,8 +494,33 @@ class FirebaseItemCard extends StatelessWidget {
     );
   }
 
+  Future<String> _getOwnerName(DocumentReference ownerId) async {
+    try {
+      // Use a new FirebaseFirestore instance to get owner info using the same database config
+      final tempDb = FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: 'inventory-db',
+      );
+      final ownerDoc = await tempDb.collection('profiles').doc(ownerId.id).get();
+      if (ownerDoc.exists) {
+        final ownerData = ownerDoc.data();
+        final firstName = ownerData?['firstName'] ?? '';
+        final lastName = ownerData?['lastName'] ?? '';
+        final ownerName = '$firstName $lastName'.trim();
+        return ownerName.isNotEmpty ? ownerName : 'Unknown';
+      }
+      return 'Unknown';
+    } catch (e) {
+      debugPrint("HomePage: Error fetching owner name: $e");
+      return 'Unavailable';
+    }
+  }
+
   Widget _buildLenderInfo(Map<String, dynamic> itemData) {
     final ownerId = itemData['ownerId'];
+    
+    // Debug: Print the ownerId to understand its structure
+    debugPrint("HomePage: ownerId type: ${ownerId.runtimeType}, value: $ownerId");
     
     // Handle different data types for ownerId
     if (ownerId == null) {
@@ -461,16 +535,12 @@ class FirebaseItemCard extends StatelessWidget {
     
     // If ownerId is a DocumentReference, fetch the owner data
     if (ownerId is DocumentReference) {
-      return FutureBuilder<DocumentSnapshot>(
-        future: ownerId.get(),
+      return FutureBuilder<String>(
+        future: _getOwnerName(ownerId),
         builder: (context, ownerSnapshot) {
-          if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
-            final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
-            final firstName = ownerData?['firstName'] ?? '';
-            final lastName = ownerData?['lastName'] ?? '';
-            final fullName = '$firstName $lastName'.trim();
+          if (ownerSnapshot.hasData) {
             return Text(
-              'Lender: ${fullName.isNotEmpty ? fullName : 'Unknown'}',
+              'Lender: ${ownerSnapshot.data}',
               style: TextStyle(
                 fontSize: 14,
                 color: Color(0xFF93b9e1),
@@ -480,11 +550,12 @@ class FirebaseItemCard extends StatelessWidget {
           }
           
           if (ownerSnapshot.hasError) {
+            debugPrint("HomePage: Owner lookup error: ${ownerSnapshot.error}");
             return Text(
-              'Lender: Error loading',
+              'Lender: Unavailable',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.red[600],
+                color: Colors.grey[600],
               ),
             );
           }

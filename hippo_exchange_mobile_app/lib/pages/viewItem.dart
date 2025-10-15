@@ -23,10 +23,15 @@ class ViewItemPage extends StatefulWidget {
 class _ViewItemPageState extends State<ViewItemPage> {
   Map<String, dynamic>? _itemData;
   bool _isLoading = true;
+  late final FirebaseFirestore db;
 
   @override
   void initState() {
     super.initState();
+    db = FirebaseFirestore.instanceFor(
+      app: Firebase.app(),
+      databaseId: 'inventory-db',
+    );
     if (widget.itemData != null) {
       _itemData = widget.itemData;
       _isLoading = false;
@@ -37,10 +42,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   Future<void> _loadItemData() async {
     try {
-      final doc = await FirebaseFirestore.instanceFor(
-        app: Firebase.app(),
-        databaseId: 'inventory-db',
-      ).collection('items').doc(widget.itemId).get();
+      final doc = await db.collection('items').doc(widget.itemId).get();
       
       if (doc.exists) {
         setState(() {
@@ -60,11 +62,26 @@ class _ViewItemPageState extends State<ViewItemPage> {
     }
   }
 
+  Future<String> _getOwnerName(DocumentReference ownerId) async {
+    try {
+      // Use the Firebase service instance to get owner info using the same database config
+      final ownerDoc = await db.collection('profiles').doc(ownerId.id).get();
+      if (ownerDoc.exists) {
+        final ownerData = ownerDoc.data();
+        final firstName = ownerData?['firstName'] ?? '';
+        final lastName = ownerData?['lastName'] ?? '';
+        final ownerName = '$firstName $lastName'.trim();
+        return ownerName.isNotEmpty ? ownerName : 'Unknown Owner';
+      }
+      return 'Unknown Owner';
+    } catch (e) {
+      debugPrint("ViewItemPage: Error fetching owner name: $e");
+      return 'Owner info unavailable';
+    }
+  }
+
   Future<void> _borrowItem() async {
     try {
-      // TODO: Implement actual borrowing logic with Firebase
-      // For now, show a confirmation dialog and success message
-      
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
@@ -101,8 +118,11 @@ class _ViewItemPageState extends State<ViewItemPage> {
           ),
         );
 
-        // Simulate API call delay
-        await Future.delayed(Duration(seconds: 2));
+        // Call Firebase borrowing method
+        await AuthService().startBorrow(
+          itemId: widget.itemId,
+          dueAt: DateTime.now().add(Duration(days: 7)), // Default 7 days from now
+        );
 
         // Close loading dialog
         Navigator.of(context).pop();
@@ -118,16 +138,12 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
         // Go back to home page
         Navigator.of(context).pop();
-
-        // TODO: Implement actual Firebase borrowing logic:
-        // 1. Update item status to borrowed
-        // 2. Set borrower information
-        // 3. Set borrow date and due date
-        // 4. Update Firestore document
       }
     } catch (e) {
       // Close any open dialogs
-      Navigator.of(context).pop();
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -159,17 +175,16 @@ class _ViewItemPageState extends State<ViewItemPage> {
     final itemName = _itemData!['name'] ?? 'Unnamed Item';
     final itemDesc = _itemData!['desc'] ?? 'No description available';
     final isLent = _itemData!['isLent'] == true;
-    final ownerDisplayName = _itemData!['ownerDisplayName'] ?? 'Unknown Owner';
     final imageUrl = _itemData!['picture'];
     
     // Format dates
     String? borrowedDate;
     String? dueDate;
     
-    if (_itemData!['startedAt'] != null) {
-      final startedAtTimestamp = _itemData!['startedAt'] as Timestamp;
-      final startedDateTime = startedAtTimestamp.toDate().toLocal();
-      borrowedDate = "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
+    if (_itemData!['borrowedOn'] != null) {
+      final borrowedOnTimestamp = _itemData!['borrowedOn'] as Timestamp;
+      final borrowedDateTime = borrowedOnTimestamp.toDate().toLocal();
+      borrowedDate = "${borrowedDateTime.year}-${borrowedDateTime.month.toString().padLeft(2, '0')}-${borrowedDateTime.day.toString().padLeft(2, '0')}";
     }
     
     if (_itemData!['dueAt'] != null) {
@@ -331,7 +346,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
                 ),
                 const SizedBox(height: 12),
                 
-                _buildDetailRow('Owner', ownerDisplayName),
+                _buildOwnerDetailRow(),
                 const SizedBox(height: 12),
                 
                 _buildDetailRow(
@@ -384,6 +399,36 @@ class _ViewItemPageState extends State<ViewItemPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildOwnerDetailRow() {
+    final ownerId = _itemData!['ownerId'];
+    
+    // Debug: Print the ownerId to understand its structure
+    debugPrint("ViewItemPage: ownerId type: ${ownerId.runtimeType}, value: $ownerId");
+    
+    // Handle the case where ownerId is a DocumentReference
+    if (ownerId is DocumentReference) {
+      return FutureBuilder<String>(
+        future: _getOwnerName(ownerId),
+        builder: (context, ownerSnapshot) {
+          if (ownerSnapshot.hasData) {
+            return _buildDetailRow('Owner', ownerSnapshot.data!);
+          }
+          
+          if (ownerSnapshot.hasError) {
+            debugPrint("ViewItemPage: Owner lookup error: ${ownerSnapshot.error}");
+            return _buildDetailRow('Owner', 'Owner info unavailable');
+          }
+          
+          return _buildDetailRow('Owner', 'Loading...');
+        },
+      );
+    }
+    
+    // Fallback for any other data type or null
+    debugPrint("ViewItemPage: ownerId is not DocumentReference. Type: ${ownerId.runtimeType}, value: $ownerId");
+    return _buildDetailRow('Owner', 'Unknown Owner (${ownerId?.runtimeType ?? 'null'})');
   }
 
   Widget _buildDetailRow(String label, String value, {Color? statusColor}) {

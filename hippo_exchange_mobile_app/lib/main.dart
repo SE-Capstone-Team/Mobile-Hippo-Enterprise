@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hippo_exchange_mobile_app/pages/homePage.dart';
 import 'package:hippo_exchange_mobile_app/pages/registrationPage.dart';
@@ -15,6 +16,12 @@ import 'pages/profilePage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Lock orientation to portrait
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   runApp(
     const MaterialApp(debugShowCheckedModeBanner: false, home: AuthGate()), // Use AuthGate for automatic login/logout handling
