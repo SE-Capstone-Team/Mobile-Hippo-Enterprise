@@ -36,12 +36,14 @@ class _LendingPageState extends State<LendingPage> {
         backgroundColor: const Color(0xFFF0F4F8),
         centerTitle: false,
         title: RichText(
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           text: TextSpan(
             children: [
               TextSpan(
                 text: 'Hippo ',
                 style: const TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -49,7 +51,7 @@ class _LendingPageState extends State<LendingPage> {
               TextSpan(
                 text: 'Exchange: ',
                 style: const TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93B9E1),
                 ),
@@ -57,7 +59,7 @@ class _LendingPageState extends State<LendingPage> {
               const TextSpan(
                 text: 'My Items',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -76,49 +78,64 @@ class _LendingPageState extends State<LendingPage> {
 
         // NEW: Notification Bell with unread badge
         actions: [
-          FutureBuilder<int>(
-            future: NotificationService.instance.getUnreadCount(),
-            builder: (context, snap) {
-              final unread = snap.data ?? 0;
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    tooltip: 'Notifications',
-                    icon: const Icon(Icons.notifications),
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const NotificationsInboxPage(),
+          StatefulBuilder(
+            builder: (context, setNotificationState) {
+              return FutureBuilder<int>(
+                future: NotificationService.instance.getUnreadCount(),
+                builder: (context, snap) {
+                  final unread = snap.data ?? 0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        tooltip: 'Notifications',
+                        icon: const Icon(
+                          Icons.notifications,
+                          size: 28, // Increased size
                         ),
-                      );
-                      if (mounted) setState(() {}); // refresh badge on return
-                    },
-                  ),
-                  if (unread > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '$unread',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
+                        onPressed: () async {
+                          // Immediate feedback - disable during navigation
+                          setNotificationState(() {});
+                          
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsInboxPage(),
+                            ),
+                          );
+                          
+                          // Only refresh the notification badge, not the entire page
+                          if (mounted) {
+                            setNotificationState(() {});
+                          }
+                        },
+                      ),
+                      if (unread > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF93B9E1), // Updated to match app theme
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Text(
+                              '$unread',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                ],
+                    ],
+                  );
+                },
               );
             },
           ),

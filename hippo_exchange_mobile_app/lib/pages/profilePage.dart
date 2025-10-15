@@ -169,12 +169,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
         centerTitle: false,
         elevation: 0,
         title: RichText(
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           text: TextSpan(
             children: [
               TextSpan(
                 text: 'Hippo ',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -182,7 +184,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               TextSpan(
                 text: 'Exchange: ',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
                 ),
@@ -190,7 +192,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               TextSpan(
                 text: 'Profile',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
