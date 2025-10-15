@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 
@@ -215,20 +216,32 @@ class _HomePageState extends State<HomePage> {
           );
         }
         
-        var docs = snapshot.data!.docs;
+        // Filter docs to exclude items that match the search query and exclude current user's items
+        final currentUser = FirebaseAuth.instance.currentUser;
+        final filteredDocs = snapshot.data!.docs.where((doc) {
+          final data = doc.data();
+          final itemName = (data['name'] ?? '').toLowerCase();
+          final itemDesc = (data['desc'] ?? '').toLowerCase();
+          
+          // Check if item matches search query
+          final matchesSearch = _searchQuery.isEmpty || 
+              itemName.contains(_searchQuery) || 
+              itemDesc.contains(_searchQuery);
+          
+          // Check if item is not owned by current user
+          bool notOwnedByCurrentUser = true;
+          if (currentUser != null) {
+            final ownerId = data['ownerId'];
+            if (ownerId is DocumentReference) {
+              // Compare the document ID from the reference
+              notOwnedByCurrentUser = ownerId.id != currentUser.uid;
+            }
+          }
+          
+          return matchesSearch && notOwnedByCurrentUser;
+        }).toList();
         
-        // Filter items based on search query
-        if (_searchQuery.isNotEmpty) {
-          docs = docs.where((doc) {
-            final data = doc.data();
-            final name = (data['name'] ?? '').toString().toLowerCase();
-            final desc = (data['desc'] ?? '').toString().toLowerCase();
-            return name.contains(_searchQuery.toLowerCase()) ||
-                   desc.contains(_searchQuery.toLowerCase());
-          }).toList();
-        }
-        
-        if (docs.isEmpty && _searchQuery.isNotEmpty) {
+        if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -251,10 +264,33 @@ class _HomePageState extends State<HomePage> {
           );
         }
         
+        if (filteredDocs.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'No available items to borrow',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        
         return ListView.builder(
-          itemCount: docs.length,
+          itemCount: filteredDocs.length,
           itemBuilder: (context, index) {
-            final doc = docs[index];
+            final doc = filteredDocs[index];
             final data = doc.data();
             
             // Add safety check for required fields
@@ -292,6 +328,7 @@ class _HomePageState extends State<HomePage> {
         builder: (context) => ViewItemPage(
           itemId: itemId,
           itemData: data,
+          showBorrowButton: true, // Enable borrowing from home page
         ),
       ),
     );

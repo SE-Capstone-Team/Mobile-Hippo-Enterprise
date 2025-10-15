@@ -62,9 +62,6 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   Future<void> _borrowItem() async {
     try {
-      // TODO: Implement actual borrowing logic with Firebase
-      // For now, show a confirmation dialog and success message
-      
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
@@ -101,8 +98,11 @@ class _ViewItemPageState extends State<ViewItemPage> {
           ),
         );
 
-        // Simulate API call delay
-        await Future.delayed(Duration(seconds: 2));
+        // Call Firebase borrowing method
+        await AuthService().startBorrow(
+          itemId: widget.itemId,
+          dueAt: DateTime.now().add(Duration(days: 7)), // Default 7 days from now
+        );
 
         // Close loading dialog
         Navigator.of(context).pop();
@@ -118,16 +118,12 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
         // Go back to home page
         Navigator.of(context).pop();
-
-        // TODO: Implement actual Firebase borrowing logic:
-        // 1. Update item status to borrowed
-        // 2. Set borrower information
-        // 3. Set borrow date and due date
-        // 4. Update Firestore document
       }
     } catch (e) {
       // Close any open dialogs
-      Navigator.of(context).pop();
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -159,17 +155,16 @@ class _ViewItemPageState extends State<ViewItemPage> {
     final itemName = _itemData!['name'] ?? 'Unnamed Item';
     final itemDesc = _itemData!['desc'] ?? 'No description available';
     final isLent = _itemData!['isLent'] == true;
-    final ownerDisplayName = _itemData!['ownerDisplayName'] ?? 'Unknown Owner';
     final imageUrl = _itemData!['picture'];
     
     // Format dates
     String? borrowedDate;
     String? dueDate;
     
-    if (_itemData!['startedAt'] != null) {
-      final startedAtTimestamp = _itemData!['startedAt'] as Timestamp;
-      final startedDateTime = startedAtTimestamp.toDate().toLocal();
-      borrowedDate = "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
+    if (_itemData!['borrowedOn'] != null) {
+      final borrowedOnTimestamp = _itemData!['borrowedOn'] as Timestamp;
+      final borrowedDateTime = borrowedOnTimestamp.toDate().toLocal();
+      borrowedDate = "${borrowedDateTime.year}-${borrowedDateTime.month.toString().padLeft(2, '0')}-${borrowedDateTime.day.toString().padLeft(2, '0')}";
     }
     
     if (_itemData!['dueAt'] != null) {
@@ -331,7 +326,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
                 ),
                 const SizedBox(height: 12),
                 
-                _buildDetailRow('Owner', ownerDisplayName),
+                _buildOwnerDetailRow(),
                 const SizedBox(height: 12),
                 
                 _buildDetailRow(
@@ -384,6 +379,39 @@ class _ViewItemPageState extends State<ViewItemPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildOwnerDetailRow() {
+    final ownerId = _itemData!['ownerId'];
+    
+    // Handle the case where ownerId is a DocumentReference
+    if (ownerId is DocumentReference) {
+      return FutureBuilder<DocumentSnapshot>(
+        future: ownerId.get(),
+        builder: (context, ownerSnapshot) {
+          if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
+            final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
+            final firstName = ownerData?['firstName'] ?? '';
+            final lastName = ownerData?['lastName'] ?? '';
+            final ownerName = '$firstName $lastName'.trim();
+            
+            return _buildDetailRow(
+              'Owner', 
+              ownerName.isNotEmpty ? ownerName : 'Unknown Owner'
+            );
+          }
+          
+          if (ownerSnapshot.hasError) {
+            return _buildDetailRow('Owner', 'Error loading owner');
+          }
+          
+          return _buildDetailRow('Owner', 'Loading...');
+        },
+      );
+    }
+    
+    // Fallback for any other data type or null
+    return _buildDetailRow('Owner', 'Unknown Owner');
   }
 
   Widget _buildDetailRow(String label, String value, {Color? statusColor}) {
