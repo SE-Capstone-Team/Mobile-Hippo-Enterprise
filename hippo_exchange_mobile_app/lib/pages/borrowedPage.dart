@@ -157,19 +157,17 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 final itemDesc = data['desc'] ?? '';
                 final imageUrl = data['picture'];
 
-                final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
-                final Timestamp? borrowedOnTimestamp = data['borrowedOn'] as Timestamp?;
+              final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
+              final Timestamp? borrowedOnTimestamp = data['borrowedOn'] as Timestamp?;
 
-              String? startedDate;
+              String? borrowedDate;
               String? dueDate;
 
-              if (startedAtTimestamp != null) {
-                final startedDateTime = startedAtTimestamp.toDate().toLocal();
-                startedDate =
-                "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
-              }
-
-              if (dueAtTimestamp != null) {
+              if (borrowedOnTimestamp != null) {
+                final borrowedDateTime = borrowedOnTimestamp.toDate().toLocal();
+                borrowedDate =
+                "${borrowedDateTime.year}-${borrowedDateTime.month.toString().padLeft(2, '0')}-${borrowedDateTime.day.toString().padLeft(2, '0')}";
+              }              if (dueAtTimestamp != null) {
                 final dueDateTime = dueAtTimestamp.toDate().toLocal();
                 dueDate =
                 "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
