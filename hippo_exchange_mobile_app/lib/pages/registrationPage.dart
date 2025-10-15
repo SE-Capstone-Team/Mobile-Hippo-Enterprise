@@ -181,7 +181,7 @@ class _RegisterPageState extends State<RegistrationPage> {
           child: SingleChildScrollView(
             child: Container(
               alignment: Alignment.topCenter,
-              width: 365,
+              width: 370, // Updated to match login page
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
@@ -189,7 +189,7 @@ class _RegisterPageState extends State<RegistrationPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 20), // Reduced spacing to move card up
+                  const SizedBox(height: 10), // Reduced from 20 to move card up slightly
 
                   // Card containing registration fields
                   Card(
