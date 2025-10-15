@@ -23,10 +23,15 @@ class ViewItemPage extends StatefulWidget {
 class _ViewItemPageState extends State<ViewItemPage> {
   Map<String, dynamic>? _itemData;
   bool _isLoading = true;
+  late final FirebaseFirestore db;
 
   @override
   void initState() {
     super.initState();
+    db = FirebaseFirestore.instanceFor(
+      app: Firebase.app(),
+      databaseId: 'inventory-db',
+    );
     if (widget.itemData != null) {
       _itemData = widget.itemData;
       _isLoading = false;
@@ -37,10 +42,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   Future<void> _loadItemData() async {
     try {
-      final doc = await FirebaseFirestore.instanceFor(
-        app: Firebase.app(),
-        databaseId: 'inventory-db',
-      ).collection('items').doc(widget.itemId).get();
+      final doc = await db.collection('items').doc(widget.itemId).get();
       
       if (doc.exists) {
         setState(() {
@@ -57,6 +59,24 @@ class _ViewItemPageState extends State<ViewItemPage> {
           SnackBar(content: Text('Error loading item: $e')),
         );
       }
+    }
+  }
+
+  Future<String> _getOwnerName(DocumentReference ownerId) async {
+    try {
+      // Use the Firebase service instance to get owner info using the same database config
+      final ownerDoc = await db.collection('profiles').doc(ownerId.id).get();
+      if (ownerDoc.exists) {
+        final ownerData = ownerDoc.data();
+        final firstName = ownerData?['firstName'] ?? '';
+        final lastName = ownerData?['lastName'] ?? '';
+        final ownerName = '$firstName $lastName'.trim();
+        return ownerName.isNotEmpty ? ownerName : 'Unknown Owner';
+      }
+      return 'Unknown Owner';
+    } catch (e) {
+      debugPrint("ViewItemPage: Error fetching owner name: $e");
+      return 'Owner info unavailable';
     }
   }
 
@@ -384,25 +404,21 @@ class _ViewItemPageState extends State<ViewItemPage> {
   Widget _buildOwnerDetailRow() {
     final ownerId = _itemData!['ownerId'];
     
+    // Debug: Print the ownerId to understand its structure
+    debugPrint("ViewItemPage: ownerId type: ${ownerId.runtimeType}, value: $ownerId");
+    
     // Handle the case where ownerId is a DocumentReference
     if (ownerId is DocumentReference) {
-      return FutureBuilder<DocumentSnapshot>(
-        future: ownerId.get(),
+      return FutureBuilder<String>(
+        future: _getOwnerName(ownerId),
         builder: (context, ownerSnapshot) {
-          if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
-            final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
-            final firstName = ownerData?['firstName'] ?? '';
-            final lastName = ownerData?['lastName'] ?? '';
-            final ownerName = '$firstName $lastName'.trim();
-            
-            return _buildDetailRow(
-              'Owner', 
-              ownerName.isNotEmpty ? ownerName : 'Unknown Owner'
-            );
+          if (ownerSnapshot.hasData) {
+            return _buildDetailRow('Owner', ownerSnapshot.data!);
           }
           
           if (ownerSnapshot.hasError) {
-            return _buildDetailRow('Owner', 'Error loading owner');
+            debugPrint("ViewItemPage: Owner lookup error: ${ownerSnapshot.error}");
+            return _buildDetailRow('Owner', 'Owner info unavailable');
           }
           
           return _buildDetailRow('Owner', 'Loading...');
@@ -411,7 +427,8 @@ class _ViewItemPageState extends State<ViewItemPage> {
     }
     
     // Fallback for any other data type or null
-    return _buildDetailRow('Owner', 'Unknown Owner');
+    debugPrint("ViewItemPage: ownerId is not DocumentReference. Type: ${ownerId.runtimeType}, value: $ownerId");
+    return _buildDetailRow('Owner', 'Unknown Owner (${ownerId?.runtimeType ?? 'null'})');
   }
 
   Widget _buildDetailRow(String label, String value, {Color? statusColor}) {

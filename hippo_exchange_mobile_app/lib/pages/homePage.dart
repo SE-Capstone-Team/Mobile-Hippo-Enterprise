@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 
@@ -15,6 +16,17 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   final AuthService _authService = AuthService();
+  
+  late final FirebaseFirestore db;
+
+  @override
+  void initState() {
+    super.initState();
+    db = FirebaseFirestore.instanceFor(
+      app: Firebase.app(),
+      databaseId: 'inventory-db',
+    );
+  }
 
   @override
   void dispose() {
@@ -482,8 +494,33 @@ class FirebaseItemCard extends StatelessWidget {
     );
   }
 
+  Future<String> _getOwnerName(DocumentReference ownerId) async {
+    try {
+      // Use a new FirebaseFirestore instance to get owner info using the same database config
+      final tempDb = FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: 'inventory-db',
+      );
+      final ownerDoc = await tempDb.collection('profiles').doc(ownerId.id).get();
+      if (ownerDoc.exists) {
+        final ownerData = ownerDoc.data();
+        final firstName = ownerData?['firstName'] ?? '';
+        final lastName = ownerData?['lastName'] ?? '';
+        final ownerName = '$firstName $lastName'.trim();
+        return ownerName.isNotEmpty ? ownerName : 'Unknown';
+      }
+      return 'Unknown';
+    } catch (e) {
+      debugPrint("HomePage: Error fetching owner name: $e");
+      return 'Unavailable';
+    }
+  }
+
   Widget _buildLenderInfo(Map<String, dynamic> itemData) {
     final ownerId = itemData['ownerId'];
+    
+    // Debug: Print the ownerId to understand its structure
+    debugPrint("HomePage: ownerId type: ${ownerId.runtimeType}, value: $ownerId");
     
     // Handle different data types for ownerId
     if (ownerId == null) {
@@ -498,16 +535,12 @@ class FirebaseItemCard extends StatelessWidget {
     
     // If ownerId is a DocumentReference, fetch the owner data
     if (ownerId is DocumentReference) {
-      return FutureBuilder<DocumentSnapshot>(
-        future: ownerId.get(),
+      return FutureBuilder<String>(
+        future: _getOwnerName(ownerId),
         builder: (context, ownerSnapshot) {
-          if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
-            final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
-            final firstName = ownerData?['firstName'] ?? '';
-            final lastName = ownerData?['lastName'] ?? '';
-            final fullName = '$firstName $lastName'.trim();
+          if (ownerSnapshot.hasData) {
             return Text(
-              'Lender: ${fullName.isNotEmpty ? fullName : 'Unknown'}',
+              'Lender: ${ownerSnapshot.data}',
               style: TextStyle(
                 fontSize: 14,
                 color: Color(0xFF93b9e1),
@@ -517,11 +550,12 @@ class FirebaseItemCard extends StatelessWidget {
           }
           
           if (ownerSnapshot.hasError) {
+            debugPrint("HomePage: Owner lookup error: ${ownerSnapshot.error}");
             return Text(
-              'Lender: Error loading',
+              'Lender: Unavailable',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.red[600],
+                color: Colors.grey[600],
               ),
             );
           }

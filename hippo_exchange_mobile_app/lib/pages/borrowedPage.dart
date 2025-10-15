@@ -372,6 +372,24 @@ class _BorrowingPageState extends State<BorrowingPage> {
       );
   }
 
+  Future<String> _getOwnerName(DocumentReference ownerId) async {
+    try {
+      // Use the Firebase service instance to get owner info using the same database config
+      final ownerDoc = await db.collection('profiles').doc(ownerId.id).get();
+      if (ownerDoc.exists) {
+        final ownerData = ownerDoc.data();
+        final firstName = ownerData?['firstName'] ?? '';
+        final lastName = ownerData?['lastName'] ?? '';
+        final ownerName = '$firstName $lastName'.trim();
+        return ownerName.isNotEmpty ? ownerName : 'Unknown Owner';
+      }
+      return 'Unknown Owner';
+    } catch (e) {
+      debugPrint("BorrowedPage: Error fetching owner name: $e");
+      return 'Owner info unavailable';
+    }
+  }
+
   Future<void> _returnItem(String itemId, String itemName) async {
     try {
       final confirmed = await showDialog<bool>(
@@ -444,17 +462,16 @@ class _BorrowingPageState extends State<BorrowingPage> {
 
   // Helper method to build owner info from Firestore reference
   Widget _buildOwnerInfo(dynamic ownerId) {
+    // Debug: Print the ownerId to understand its structure
+    debugPrint("BorrowedPage: ownerId type: ${ownerId.runtimeType}, value: $ownerId");
+    
     // Handle the case where ownerId is a DocumentReference
     if (ownerId is DocumentReference) {
-      return FutureBuilder<DocumentSnapshot>(
-        future: ownerId.get(),
+      // Instead of directly accessing the DocumentReference, let's try using our Firebase service
+      return FutureBuilder<String>(
+        future: _getOwnerName(ownerId),
         builder: (context, ownerSnapshot) {
-          if (ownerSnapshot.hasData && ownerSnapshot.data!.exists) {
-            final ownerData = ownerSnapshot.data!.data() as Map<String, dynamic>?;
-            final firstName = ownerData?['firstName'] ?? '';
-            final lastName = ownerData?['lastName'] ?? '';
-            final ownerName = '$firstName $lastName'.trim();
-            
+          if (ownerSnapshot.hasData) {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -466,7 +483,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 ),
               ),
               child: Text(
-                'Borrowed from: ${ownerName.isNotEmpty ? ownerName : 'Unknown Owner'}',
+                'Borrowed from: ${ownerSnapshot.data}',
                 style: TextStyle(
                   color: Colors.blue[700],
                   fontWeight: FontWeight.w600,
@@ -477,20 +494,23 @@ class _BorrowingPageState extends State<BorrowingPage> {
           }
           
           if (ownerSnapshot.hasError) {
+            // Debug: Print the actual error
+            debugPrint("BorrowedPage: Owner lookup error: ${ownerSnapshot.error}");
+            // Return a simpler fallback instead of showing error to user
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.grey.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.red.withOpacity(0.3),
+                  color: Colors.grey.withOpacity(0.3),
                   width: 1,
                 ),
               ),
               child: Text(
-                'Owner: Error loading',
+                'Borrowed from: Owner info unavailable',
                 style: TextStyle(
-                  color: Colors.red[700],
+                  color: Colors.grey[700],
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
@@ -522,6 +542,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
     }
     
     // Fallback for any other data type or null
+    debugPrint("BorrowedPage: ownerId is not DocumentReference. Type: ${ownerId.runtimeType}, value: $ownerId");
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -533,7 +554,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
         ),
       ),
       child: Text(
-        'Owner: Unknown',
+        'Owner: Unknown (${ownerId?.runtimeType ?? 'null'})',
         style: TextStyle(
           color: Colors.grey[700],
           fontWeight: FontWeight.w600,
