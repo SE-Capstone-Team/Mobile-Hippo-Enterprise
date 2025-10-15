@@ -24,6 +24,7 @@ class ViewItemPage extends StatefulWidget {
 class _ViewItemPageState extends State<ViewItemPage> {
   Map<String, dynamic>? _itemData;
   bool _isLoading = true;
+  late final FirebaseFirestore db;
 
   @override
   void initState() {
@@ -48,14 +49,14 @@ class _ViewItemPageState extends State<ViewItemPage> {
           _itemData = doc.data();
           _isLoading = false;
         });
+      } else {
+        setState(() => _isLoading = false);
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading item: $e')),
+          SnackBar(content: Text(AuthService().mapFirebaseError(e))),
         );
       }
     }
@@ -67,12 +68,12 @@ class _ViewItemPageState extends State<ViewItemPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Confirm Borrow'),
+            title: const Text('Confirm Borrow'),
             content: Text('Are you sure you want to borrow "${_itemData!['name']}"?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -80,7 +81,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text('Borrow'),
+                child: const Text('Borrow'),
               ),
             ],
           );
@@ -88,38 +89,57 @@ class _ViewItemPageState extends State<ViewItemPage> {
       );
 
       if (confirmed == true) {
+        // Loading spinner
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => Center(
-            child: CircularProgressIndicator(
-              color: const Color(0xFF93B9E1),
-            ),
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF93B9E1)),
           ),
         );
 
+        // Call Firebase borrowing method
         await AuthService().startBorrow(
           itemId: widget.itemId,
+          dueAt: DateTime.now().add(Duration(days: 7)), // Default 7 days from now
         );
 
-        Navigator.of(context).pop();
+        // Close loading
+        if (mounted) Navigator.of(context).pop();
 
+        // NEW: Fire local notification (and optional OS banner)
+        await NotificationService.instance.notifyLocal(
+          title: 'Borrow complete',
+          body: 'You borrowed “${_itemData!['name']}”.',
+          payload: {
+            'type': 'borrow_complete',
+            'itemId': widget.itemId,
+            'name': _itemData!['name'],
+          },
+          showSystemBanner: true,
+        );
+
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Successfully borrowed "${_itemData!['name']}"!'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
 
+        // Navigate back after success
         Navigator.of(context).pop();
       }
     } catch (e) {
-      Navigator.of(context).pop();
-
+      // Close any open dialogs
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error borrowing item: ${e.toString()}'),
+          content: Text(AuthService().mapFirebaseError(e)),
           backgroundColor: Colors.red,
         ),
       );
@@ -134,12 +154,79 @@ class _ViewItemPageState extends State<ViewItemPage> {
         title: const Text("Item Details"),
         backgroundColor: const Color(0xFF93B9E1),
         elevation: 0,
+
+        // NEW: Notification Bell with unread badge
+        actions: [
+          StatefulBuilder(
+            builder: (context, setNotificationState) {
+              return FutureBuilder<int>(
+                future: NotificationService.instance.getUnreadCount(),
+                builder: (context, snap) {
+                  final unread = snap.data ?? 0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        tooltip: 'Notifications',
+                        icon: const Icon(
+                          Icons.notifications,
+                          size: 28, // Increased size
+                        ),
+                        onPressed: () async {
+                          // Immediate feedback - disable during navigation
+                          setNotificationState(() {});
+
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsInboxPage(),
+                            ),
+                          );
+
+                          // Only refresh the notification badge, not the entire page
+                          if (mounted) {
+                            setNotificationState(() {});
+                          }
+                        },
+                      ),
+                      if (unread > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: IgnorePointer(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF93B9E1), // Updated to match app theme
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                '$unread',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _itemData == null
-              ? const Center(child: Text('Item not found'))
-              : _buildItemDetails(),
+          ? const Center(child: Text('Item not found'))
+          : _buildItemDetails(),
     );
   }
 
@@ -149,7 +236,8 @@ class _ViewItemPageState extends State<ViewItemPage> {
     final isLent = _itemData!['isLent'] == true;
     final address = _itemData!['location'] ?? 'Not available';
     final imageUrl = _itemData!['picture'];
-
+    
+    // Format dates
     String? borrowedDate;
     String? dueDate;
 
@@ -162,7 +250,8 @@ class _ViewItemPageState extends State<ViewItemPage> {
     if (_itemData!['dueAt'] != null) {
       final dueAtTimestamp = _itemData!['dueAt'] as Timestamp;
       final dueDateTime = dueAtTimestamp.toDate().toLocal();
-      dueDate = "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
+      dueDate =
+      "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
     }
 
     return SingleChildScrollView(
@@ -170,6 +259,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Large image space with rounded corners
           Container(
             width: double.infinity,
             height: 250,
@@ -213,9 +303,10 @@ class _ViewItemPageState extends State<ViewItemPage> {
                     ),
             ),
           ),
-
+          
           const SizedBox(height: 24),
-
+          
+          // Item title
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -250,9 +341,10 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-
+          
           const SizedBox(height: 16),
-
+          
+          // Description
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -287,9 +379,10 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-
+          
           const SizedBox(height: 16),
-
+          
+          // Item details
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -318,18 +411,18 @@ class _ViewItemPageState extends State<ViewItemPage> {
                 const SizedBox(height: 12),
                 _buildDetailRow('Item Location', address),
                 const SizedBox(height: 12),
-
+                
                 _buildDetailRow(
                   'Status',
                   isLent ? 'Currently Borrowed' : 'Available',
                   statusColor: isLent ? Colors.red : Colors.green,
                 ),
-
+                
                 if (borrowedDate != null) ...[
                   const SizedBox(height: 12),
                   _buildDetailRow('Borrowed On', borrowedDate),
                 ],
-
+                
                 if (dueDate != null) ...[
                   const SizedBox(height: 12),
                   _buildDetailRow('Due Date', dueDate),
@@ -337,9 +430,10 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-
+          
           const SizedBox(height: 24),
 
+          // Borrow Button (only show if requested and available)
           if (widget.showBorrowButton && !isLent) ...[
             SizedBox(
               width: double.infinity,
@@ -370,31 +464,34 @@ class _ViewItemPageState extends State<ViewItemPage> {
     );
   }
 
-  Widget _buildOwnerName() {
-    final ownerId = _itemData!['ownerId'] as DocumentReference?;
-
-    if (ownerId == null) {
-      return _buildDetailRow('Owner', 'Unknown');
-    }
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: ownerId.get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+  Widget _buildOwnerDetailRow() {
+    final ownerId = _itemData!['ownerId'];
+    
+    // Debug: Print the ownerId to understand its structure
+    debugPrint("ViewItemPage: ownerId type: ${ownerId.runtimeType}, value: $ownerId");
+    
+    // Handle the case where ownerId is a DocumentReference
+    if (ownerId is DocumentReference) {
+      return FutureBuilder<String>(
+        future: _getOwnerName(ownerId),
+        builder: (context, ownerSnapshot) {
+          if (ownerSnapshot.hasData) {
+            return _buildDetailRow('Owner', ownerSnapshot.data!);
+          }
+          
+          if (ownerSnapshot.hasError) {
+            debugPrint("ViewItemPage: Owner lookup error: ${ownerSnapshot.error}");
+            return _buildDetailRow('Owner', 'Owner info unavailable');
+          }
+          
           return _buildDetailRow('Owner', 'Loading...');
-        }
-        if (snapshot.hasError || !snapshot.data!.exists) {
-          return _buildDetailRow('Owner', 'Unknown');
-        }
-
-        final ownerData = snapshot.data!.data() as Map<String, dynamic>?;
-        final firstName = ownerData?['firstName'] ?? '';
-        final lastName = ownerData?['lastName'] ?? '';
-        final displayName = '$firstName $lastName'.trim();
-
-        return _buildDetailRow('Owner', displayName.isNotEmpty ? displayName : 'Unnamed');
-      },
-    );
+        },
+      );
+    }
+    
+    // Fallback for any other data type or null
+    debugPrint("ViewItemPage: ownerId is not DocumentReference. Type: ${ownerId.runtimeType}, value: $ownerId");
+    return _buildDetailRow('Owner', 'Unknown Owner (${ownerId?.runtimeType ?? 'null'})');
   }
 
   Widget _buildDetailRow(String label, String value, {Color? statusColor}) {
@@ -402,7 +499,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 120,
+          width: 100,
           child: Text(
             '$label:',
             style: const TextStyle(

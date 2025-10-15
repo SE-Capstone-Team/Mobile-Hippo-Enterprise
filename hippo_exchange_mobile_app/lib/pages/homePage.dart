@@ -5,6 +5,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 
+// NEW: notifications imports
+import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
+import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -43,12 +47,14 @@ class _HomePageState extends State<HomePage> {
         centerTitle: false,
         elevation: 0,
         title: RichText(
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           text: TextSpan(
             children: [
               TextSpan(
                 text: 'Hippo ',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -56,7 +62,7 @@ class _HomePageState extends State<HomePage> {
               TextSpan(
                 text: 'Exchange: ',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
                 ),
@@ -64,7 +70,7 @@ class _HomePageState extends State<HomePage> {
               TextSpan(
                 text: 'Home',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -72,6 +78,74 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+
+        // NEW: notification bell with unread badge
+        actions: [
+          StatefulBuilder(
+            builder: (context, setNotificationState) {
+              return FutureBuilder<int>(
+                future: NotificationService.instance.getUnreadCount(),
+                builder: (context, snap) {
+                  final unread = snap.data ?? 0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        tooltip: 'Notifications',
+                        icon: const Icon(
+                          Icons.notifications,
+                          size: 28, // Increased size
+                        ),
+                        onPressed: () async {
+                          // Immediate feedback - disable during navigation
+                          setNotificationState(() {});
+                          
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsInboxPage(),
+                            ),
+                          );
+                          
+                          // Only refresh the notification badge, not the entire page
+                          if (mounted) {
+                            setNotificationState(() {});
+                          }
+                        },
+                      ),
+                      if (unread > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: IgnorePointer(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF93B9E1), // Updated to match app theme
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                '$unread',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0),
           child: Container(
@@ -90,7 +164,8 @@ class _HomePageState extends State<HomePage> {
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Color(0xFF93b9e1).withOpacity(0.3)),
+                border:
+                Border.all(color: Color(0xFF93b9e1).withOpacity(0.3)),
               ),
               child: TextField(
                 controller: _searchController,
@@ -102,14 +177,16 @@ class _HomePageState extends State<HomePage> {
                 decoration: InputDecoration(
                   hintText: 'Search items...',
                   hintStyle: TextStyle(color: Colors.grey[600]),
-                  prefixIcon: Icon(Icons.search, color: Color(0xFF93b9e1)),
+                  prefixIcon:
+                  Icon(Icons.search, color: Color(0xFF93b9e1)),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Subtitle
             Text(
               'Items for you',
@@ -120,7 +197,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Items List
             Expanded(
               child: _buildFirebaseItemsList(),
@@ -154,7 +231,7 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         }
-        
+
         if (snapshot.hasError) {
           return Center(
             child: Column(
@@ -163,31 +240,21 @@ class _HomePageState extends State<HomePage> {
                 Icon(
                   Icons.error_outline,
                   size: 64,
-                  color: Colors.red[400],
+                  color: Colors.grey[600],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   'Error loading items',
                   style: TextStyle(
                     fontSize: 18,
-                    color: Colors.red[600],
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
-                  '${snapshot.error}',
+                  AuthService().mapFirebaseError(snapshot.error!),
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Please check your connection and try again.',
-                  style: TextStyle(
-                    fontSize: 14,
                     color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
@@ -196,7 +263,7 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         }
-        
+
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(
             child: Column(
@@ -304,7 +371,7 @@ class _HomePageState extends State<HomePage> {
           itemBuilder: (context, index) {
             final doc = filteredDocs[index];
             final data = doc.data();
-            
+
             // Add safety check for required fields
             if (data['name'] == null) {
               return Container(
@@ -321,7 +388,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             }
-            
+
             return FirebaseItemCard(
               itemId: doc.id,
               itemData: data,
@@ -532,7 +599,7 @@ class FirebaseItemCard extends StatelessWidget {
         ),
       );
     }
-    
+
     // If ownerId is a DocumentReference, fetch the owner data
     if (ownerId is DocumentReference) {
       return FutureBuilder<String>(
@@ -548,7 +615,7 @@ class FirebaseItemCard extends StatelessWidget {
               ),
             );
           }
-          
+
           if (ownerSnapshot.hasError) {
             debugPrint("HomePage: Owner lookup error: ${ownerSnapshot.error}");
             return Text(
@@ -559,7 +626,7 @@ class FirebaseItemCard extends StatelessWidget {
               ),
             );
           }
-          
+
           return Text(
             'Lender: Loading...',
             style: TextStyle(
@@ -570,7 +637,7 @@ class FirebaseItemCard extends StatelessWidget {
         },
       );
     }
-    
+
     // If ownerId is a String (legacy data), display it directly or show placeholder
     if (ownerId is String) {
       return Text(
@@ -582,7 +649,7 @@ class FirebaseItemCard extends StatelessWidget {
         ),
       );
     }
-    
+
     // Fallback for any other data type
     return Text(
       'Lender: Unknown',

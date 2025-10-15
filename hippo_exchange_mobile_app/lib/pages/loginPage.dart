@@ -50,7 +50,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     } on Exception catch (e) {
-      setState(() => _error = AuthService().mapAuthError(e));
+      setState(() => _error = AuthService().mapFirebaseError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

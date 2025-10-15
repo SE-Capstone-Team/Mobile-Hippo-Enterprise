@@ -5,6 +5,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 
+// NEW: notifications imports
+import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
+import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+
 //tasks
 //Step 1: pull from items database
 //step 2: display information in real time
@@ -14,7 +18,6 @@ import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 class BorrowingPage extends StatefulWidget {
   const BorrowingPage({super.key});
 
-
   @override
   State<BorrowingPage> createState() => _BorrowingPageState();
 }
@@ -22,13 +25,12 @@ class BorrowingPage extends StatefulWidget {
 class _BorrowingPageState extends State<BorrowingPage> {
   late final FirebaseFirestore db;
 
-
   @override
   void initState() {
     super.initState();
     db = FirebaseFirestore.instanceFor(
-        app: Firebase.app(),
-        databaseId: 'inventory-db',
+      app: Firebase.app(),
+      databaseId: 'inventory-db',
     );
   }
 
@@ -40,12 +42,14 @@ class _BorrowingPageState extends State<BorrowingPage> {
         backgroundColor: const Color(0xFFF0F4F8),
         centerTitle: false,
         title: RichText(
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
           text: TextSpan(
             children: [
               TextSpan(
                 text: 'Hippo ',
                 style: const TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -53,7 +57,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
               TextSpan(
                 text: 'Exchange: ',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF93b9e1),
                 ),
@@ -61,7 +65,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
               const TextSpan(
                 text: 'Borrowed',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -77,13 +81,71 @@ class _BorrowingPageState extends State<BorrowingPage> {
             height: 1.0,
           ),
         ),
+
+        // NEW: Notification Bell with unread badge
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF93b9e1),
-            ),
+          StatefulBuilder(
+            builder: (context, setNotificationState) {
+              return FutureBuilder<int>(
+                future: NotificationService.instance.getUnreadCount(),
+                builder: (context, snap) {
+                  final unread = snap.data ?? 0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        tooltip: 'Notifications',
+                        icon: const Icon(
+                          Icons.notifications,
+                          size: 28, // Increased size
+                        ),
+                        onPressed: () async {
+                          // Immediate feedback - disable during navigation
+                          setNotificationState(() {});
+                          
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsInboxPage(),
+                            ),
+                          );
+                          
+                          // Only refresh the notification badge, not the entire page
+                          if (mounted) {
+                            setNotificationState(() {});
+                          }
+                        },
+                      ),
+                      if (unread > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: IgnorePointer(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF93B9E1), // Updated to match app theme
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                '$unread',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -94,7 +156,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text(AuthService().mapFirebaseError(snapshot.error!)));
           }
           final docs = snapshot.data?.docs ?? [];
           if (docs.isEmpty) {
@@ -102,7 +164,6 @@ class _BorrowingPageState extends State<BorrowingPage> {
           }
 
           debugPrint("BorrowingPage: Found ${docs.length} borrowed items.");
-
 
           return ListView.separated(
               itemCount: docs.length,
@@ -115,21 +176,21 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 final itemDesc = data['desc'] ?? '';
                 final imageUrl = data['picture'];
 
-                final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
-                final Timestamp? borrowedOnTimestamp = data['borrowedOn'] as Timestamp?;
+              final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
+              final Timestamp? borrowedOnTimestamp = data['borrowedOn'] as Timestamp?;
 
-                String? borrowedDate;
-                String? dueDate;
-                
-                if (borrowedOnTimestamp != null) {
-                  final borrowedDateTime = borrowedOnTimestamp.toDate().toLocal();
-                  borrowedDate = "${borrowedDateTime.year}-${borrowedDateTime.month.toString().padLeft(2, '0')}-${borrowedDateTime.day.toString().padLeft(2, '0')}";
-                }
-                
-                if (dueAtTimestamp != null) {
-                  final dueDateTime = dueAtTimestamp.toDate().toLocal();
-                  dueDate = "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
-                }
+              String? borrowedDate;
+              String? dueDate;
+
+              if (borrowedOnTimestamp != null) {
+                final borrowedDateTime = borrowedOnTimestamp.toDate().toLocal();
+                borrowedDate =
+                "${borrowedDateTime.year}-${borrowedDateTime.month.toString().padLeft(2, '0')}-${borrowedDateTime.day.toString().padLeft(2, '0')}";
+              }              if (dueAtTimestamp != null) {
+                final dueDateTime = dueAtTimestamp.toDate().toLocal();
+                dueDate =
+                "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
+              }
 
                 return GestureDetector(
                   onTap: () {
@@ -436,6 +497,18 @@ class _BorrowingPageState extends State<BorrowingPage> {
           Navigator.of(context).pop();
         }
 
+        // NEW: Fire local notification for return
+        await NotificationService.instance.notifyLocal(
+          title: 'Item returned',
+          body: 'You successfully returned "$itemName".',
+          payload: {
+            'type': 'item_returned',
+            'itemId': itemId,
+            'name': itemName,
+          },
+          showSystemBanner: true,
+        );
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -453,7 +526,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error returning item: ${e.toString()}'),
+          content: Text(AuthService().mapFirebaseError(e)),
           backgroundColor: Colors.red,
         ),
       );
@@ -564,3 +637,4 @@ class _BorrowingPageState extends State<BorrowingPage> {
     );
   }
 }
+
