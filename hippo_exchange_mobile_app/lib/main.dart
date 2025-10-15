@@ -9,12 +9,19 @@ import 'Firebase/Firebase_service.dart';
 import 'pages/myItemsPage.dart';
 import 'pages/mainPostLogin.dart';
 import 'pages/profilePage.dart';
+import 'services/notification_service.dart';
+import 'pages/notifications_inbox.dart';
+
 
 
 // MAIN CALL TO START THE APP
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await NotificationService.instance.initialize(
+    enableSystemNotifications: true, // set false for inbox-only
+  );
 
   runApp(
     const MaterialApp(debugShowCheckedModeBanner: false, home: AuthGate()), // Use AuthGate for automatic login/logout handling

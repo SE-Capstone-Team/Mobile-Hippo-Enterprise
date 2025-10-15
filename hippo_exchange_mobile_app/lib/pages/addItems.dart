@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
+// NEW: notifications imports
+import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
+import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+
 class AddItemPage extends StatefulWidget {
   const AddItemPage({super.key});
 
@@ -14,8 +18,14 @@ class _AddItemPageState extends State<AddItemPage> {
   final TextEditingController _descController = TextEditingController();
 
   final AuthService _authService = AuthService();
-
   bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descController.dispose();
+    super.dispose();
+  }
 
   Future<void> _submitItem() async {
     if (_nameController.text.isEmpty || _descController.text.isEmpty) {
@@ -24,12 +34,9 @@ class _AddItemPageState extends State<AddItemPage> {
       );
       return;
     }
-
     if (_isSubmitting) return;
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
     try {
       await _authService.createItem(
@@ -37,21 +44,30 @@ class _AddItemPageState extends State<AddItemPage> {
         _descController.text,
       );
 
+      // NEW: local + (optional) system banner notification
+      await NotificationService.instance.notifyLocal(
+        title: 'Item added',
+        body: '“${_nameController.text}” was added successfully.',
+        payload: {
+          'type': 'item_added',
+          'name': _nameController.text,
+        },
+        showSystemBanner: true,
+      );
+
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Item added successfully!")),
       );
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error adding item: $e")),
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
+        setState(() => _isSubmitting = false);
       }
     }
   }
@@ -63,15 +79,63 @@ class _AddItemPageState extends State<AddItemPage> {
       appBar: AppBar(
         title: const Text("Add Item to Lend"),
         backgroundColor: const Color(0xFF93B9E1),
+
+        // NEW: Notification Bell with unread badge
+        actions: [
+          FutureBuilder<int>(
+            future: NotificationService.instance.getUnreadCount(),
+            builder: (context, snap) {
+              final unread = snap.data ?? 0;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    tooltip: 'Notifications',
+                    icon: const Icon(Icons.notifications),
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsInboxPage(),
+                        ),
+                      );
+                      if (mounted) setState(() {}); // refresh badge on return
+                    },
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: IntrinsicHeight(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -100,12 +164,15 @@ class _AddItemPageState extends State<AddItemPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF93B9E1),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 60, vertical: 20),
+                            horizontal: 60,
+                            vertical: 20,
+                          ),
                         ),
                         child: _isSubmitting
                             ? const CircularProgressIndicator(
-                          valueColor:
-                          AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         )
                             : const Text("Submit Item"),
                       ),
@@ -120,3 +187,4 @@ class _AddItemPageState extends State<AddItemPage> {
     );
   }
 }
+

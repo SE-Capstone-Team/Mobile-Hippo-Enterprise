@@ -4,13 +4,17 @@ import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+// NEW: notifications imports
+import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
+import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+
 class ViewItemPage extends StatefulWidget {
   final String itemId;
   final Map<String, dynamic>? itemData; // Optional pre-loaded data
   final bool showBorrowButton; // Whether to show borrow functionality
-  
+
   const ViewItemPage({
-    super.key, 
+    super.key,
     required this.itemId,
     this.itemData,
     this.showBorrowButton = false, // Default to false
@@ -41,17 +45,17 @@ class _ViewItemPageState extends State<ViewItemPage> {
         app: Firebase.app(),
         databaseId: 'inventory-db',
       ).collection('items').doc(widget.itemId).get();
-      
+
       if (doc.exists) {
         setState(() {
           _itemData = doc.data();
           _isLoading = false;
         });
+      } else {
+        setState(() => _isLoading = false);
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading item: $e')),
@@ -62,19 +66,18 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   Future<void> _borrowItem() async {
     try {
-      // TODO: Implement actual borrowing logic with Firebase
-      // For now, show a confirmation dialog and success message
-      
+      if (_itemData == null) return;
+
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Confirm Borrow'),
+            title: const Text('Confirm Borrow'),
             content: Text('Are you sure you want to borrow "${_itemData!['name']}"?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -82,7 +85,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () => Navigator.of(context).pop(true),
-                child: Text('Borrow'),
+                child: const Text('Borrow'),
               ),
             ],
           );
@@ -90,45 +93,57 @@ class _ViewItemPageState extends State<ViewItemPage> {
       );
 
       if (confirmed == true) {
-        // Show loading indicator
+        // Loading spinner
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => Center(
-            child: CircularProgressIndicator(
-              color: const Color(0xFF93B9E1),
-            ),
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF93B9E1)),
           ),
         );
 
-        // Simulate API call delay
-        await Future.delayed(Duration(seconds: 2));
+        // TODO: Replace with real Firebase borrow logic.
+        await Future.delayed(const Duration(seconds: 2));
 
-        // Close loading dialog
-        Navigator.of(context).pop();
+        // Close loading
+        if (mounted) Navigator.of(context).pop();
 
-        // Show success message
+        // NEW: Fire local notification (and optional OS banner)
+        await NotificationService.instance.notifyLocal(
+          title: 'Borrow complete',
+          body: 'You borrowed “${_itemData!['name']}”.',
+          payload: {
+            'type': 'borrow_complete',
+            'itemId': widget.itemId,
+            'name': _itemData!['name'],
+          },
+          showSystemBanner: true,
+        );
+
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Successfully borrowed "${_itemData!['name']}"!'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
 
-        // Go back to home page
+        // Navigate back after success
         Navigator.of(context).pop();
 
-        // TODO: Implement actual Firebase borrowing logic:
-        // 1. Update item status to borrowed
-        // 2. Set borrower information
-        // 3. Set borrow date and due date
-        // 4. Update Firestore document
+        // TODO: Real Firebase borrowing:
+        // 1. Update item as borrowed
+        // 2. Set borrower info
+        // 3. Set startedAt and dueAt
+        // 4. Persist to Firestore
       }
     } catch (e) {
-      // Close any open dialogs
-      Navigator.of(context).pop();
-      
+      // Close any open dialogs if present
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error borrowing item: ${e.toString()}'),
@@ -146,12 +161,56 @@ class _ViewItemPageState extends State<ViewItemPage> {
         title: const Text("Item Details"),
         backgroundColor: const Color(0xFF93B9E1),
         elevation: 0,
+
+        // NEW: Notification Bell with unread badge
+        actions: [
+          FutureBuilder<int>(
+            future: NotificationService.instance.getUnreadCount(),
+            builder: (context, snap) {
+              final unread = snap.data ?? 0;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    tooltip: 'Notifications',
+                    icon: const Icon(Icons.notifications),
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsInboxPage(),
+                        ),
+                      );
+                      if (mounted) setState(() {}); // refresh badge on return
+                    },
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$unread',
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _itemData == null
-              ? const Center(child: Text('Item not found'))
-              : _buildItemDetails(),
+          ? const Center(child: Text('Item not found'))
+          : _buildItemDetails(),
     );
   }
 
@@ -160,21 +219,23 @@ class _ViewItemPageState extends State<ViewItemPage> {
     final itemDesc = _itemData!['desc'] ?? 'No description available';
     final isLent = _itemData!['isLent'] == true;
     final ownerDisplayName = _itemData!['ownerDisplayName'] ?? 'Unknown Owner';
-    
-    // Format dates
+
+    // Dates
     String? borrowedDate;
     String? dueDate;
-    
+
     if (_itemData!['startedAt'] != null) {
       final startedAtTimestamp = _itemData!['startedAt'] as Timestamp;
       final startedDateTime = startedAtTimestamp.toDate().toLocal();
-      borrowedDate = "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
+      borrowedDate =
+      "${startedDateTime.year}-${startedDateTime.month.toString().padLeft(2, '0')}-${startedDateTime.day.toString().padLeft(2, '0')}";
     }
-    
+
     if (_itemData!['dueAt'] != null) {
       final dueAtTimestamp = _itemData!['dueAt'] as Timestamp;
       final dueDateTime = dueAtTimestamp.toDate().toLocal();
-      dueDate = "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
+      dueDate =
+      "${dueDateTime.year}-${dueDateTime.month.toString().padLeft(2, '0')}-${dueDateTime.day.toString().padLeft(2, '0')}";
     }
 
     return SingleChildScrollView(
@@ -182,7 +243,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Large image space with rounded corners
+          // Image area (placeholder)
           Container(
             width: double.infinity,
             height: 250,
@@ -203,9 +264,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Item title
           Container(
             width: double.infinity,
@@ -241,9 +302,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Description
           Container(
             width: double.infinity,
@@ -279,9 +340,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Item details
           Container(
             width: double.infinity,
@@ -306,21 +367,21 @@ class _ViewItemPageState extends State<ViewItemPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 _buildDetailRow('Owner', ownerDisplayName),
                 const SizedBox(height: 12),
-                
+
                 _buildDetailRow(
-                  'Status', 
+                  'Status',
                   isLent ? 'Currently Borrowed' : 'Available',
                   statusColor: isLent ? Colors.red : Colors.green,
                 ),
-                
+
                 if (borrowedDate != null) ...[
                   const SizedBox(height: 12),
                   _buildDetailRow('Borrowed On', borrowedDate),
                 ],
-                
+
                 if (dueDate != null) ...[
                   const SizedBox(height: 12),
                   _buildDetailRow('Due Date', dueDate),
@@ -328,10 +389,10 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
-          // Borrow Button (only show if from home page and item is available)
+
+          // Borrow Button (only show if requested and available)
           if (widget.showBorrowButton && !isLent) ...[
             SizedBox(
               width: double.infinity,
@@ -391,3 +452,4 @@ class _ViewItemPageState extends State<ViewItemPage> {
     );
   }
 }
+
