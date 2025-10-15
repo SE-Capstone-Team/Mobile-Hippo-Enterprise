@@ -42,9 +42,9 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordController.text.trim(),
       );
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Login successful!')));
+        // ScaffoldMessenger.of(
+        //   context,
+        // ).showSnackBar(const SnackBar(content: Text('Login successful!')));
         if (widget.onLoginSuccess != null) {
           widget.onLoginSuccess!();
         }
@@ -94,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
           child: SingleChildScrollView(
           child: Container(
             alignment: Alignment.topCenter,
-            width: 365,
+            width: 370, // Narrowed from 400
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               //border: Border.all(color: Colors.blueGrey, width: 1.5), // used for testing container size
@@ -104,125 +104,223 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                  const SizedBox(height: 10),
+                // // Welcome message
+                // Text(
+                //   "Sign in to start trading!",
+                //   style: TextStyle(
+                //     fontSize: 28,
+                //     fontWeight: FontWeight.bold,
+                //     color: Colors.grey[800],
+                //   ),
+                // ),
+                const SizedBox(height: 20),
+
                 // Static floating icons around hippo
                 SizedBox(
-                  height: 300,
+                  height: 280,
                   width: 300,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Central Hippo Logo
+                      // Central Hippo Logo with rounded border
                       Container(
-                        width: 180,
-                        height: 180,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
+                        width: 170, // Slightly reduced from 180
+                        height: 170,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24), // Rounded rectangle instead of circle
+                          border: Border.all(
+                            color: Color(0xFF93b9e1),
+                            width: 3,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(21), // Slightly smaller to account for border
                           child: Image.asset(
                             'assets/images/HippoExchangeLogo.png',
-                            fit: BoxFit.contain,
+                            fit: BoxFit.cover, // Changed from contain to cover to fill the space
+                            width: double.infinity,
+                            height: double.infinity,
                           ),
                         ),
                       ),
-
+                      // Decorative icons around the logo - commented out as they look odd
+                      // Positioned(
+                      //   top: 20,
+                      //   left: 60,
+                      //   child: _buildDecorativeIcon(Icons.shopping_bag, Color(0xFF93b9e1)),
+                      // ),
+                      // Positioned(
+                      //   top: 20,
+                      //   right: 60,
+                      //   child: _buildDecorativeIcon(Icons.handshake, Color(0xFF93b9e1)),
+                      // ),
+                      // Positioned(
+                      //   bottom: 20,
+                      //   left: 60,
+                      //   child: _buildDecorativeIcon(Icons.swap_horiz, Color(0xFF93b9e1)),
+                      // ),
+                      // Positioned(
+                      //   bottom: 20,
+                      //   right: 60,
+                      //   child: _buildDecorativeIcon(Icons.star, Color(0xFF93b9e1)),
+                      // ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20), // Reduced from 25 to help achieve 30-pixel total reduction
+
+                // Feature highlights - commented out as they look odd and aren't functional
+                // Container(
+                //   padding: const EdgeInsets.symmetric(horizontal: 20),
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                //     children: [
+                //       _buildFeatureItem(Icons.swap_horiz, "Trade"),
+                //       _buildFeatureItem(Icons.security, "Secure"),
+                //       _buildFeatureItem(Icons.people, "Connect"),
+                //     ],
+                //   ),
+                // ),
+                // Removed SizedBox to reduce spacing by 30 pixels (was 25 + 25 = 50, now just 25)
 
                 // Card containing login fields
                 Card(
-                  elevation: 4,
+                  elevation: 6, // Increased from 4
                   color: Color(0xFF93b9e1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        // Username text above field
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Email",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // Username text field
-                        TextField(
-                          controller: emailController,
-                          decoration: InputDecoration(
-                            hintText: "Enter Email",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Password text above field
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Password",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // Password field box
-                        TextField(
-                          controller: passwordController,
-                          obscureText: _isPasswordVisible,
-                          onSubmitted: (_) => _handleLogin(), // Submit on Enter
-                          decoration: InputDecoration(
-                            hintText: "Enter Password",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                // Choose the icon based on the visibility state
-                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                              ),
-                              onPressed: () {
-                                // Update the state to toggle visibility
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
+                  child: Container(
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.all(30), // Returned to previous size
+                      child: Column(
+                        children: [
+                          // Email text above field
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Email",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white), // Increased from 16
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        if (_loading)
-                          const CircularProgressIndicator(color: Colors.white)
-                        else
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Color(0xFF93b9e1),
-                                shape: RoundedRectangleBorder(
+                          const SizedBox(height: 12), // Increased from 8
+
+                          // Email text field
+                          Container(
+                            height: 60, // Added explicit height
+                            child: TextField(
+                              controller: emailController,
+                              style: TextStyle(fontSize: 16),
+                              decoration: InputDecoration(
+                                hintText: "Enter Email",
+                                hintStyle: TextStyle(fontSize: 16),
+                                border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                              ),
-                              onPressed: _handleLogin,
-                              child: Text(
-                                "Login",
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                               ),
                             ),
                           ),
-                      ],
+                          const SizedBox(height: 18), // Evened out spacing (was 25, reduced by 7)
+
+                          // Password text above field
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Password",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white), // Increased from 16
+                            ),
+                          ),
+                          const SizedBox(height: 12), // Increased from 8
+
+                          // Password field box
+                          Container(
+                            height: 60, // Added explicit height
+                            child: TextField(
+                              controller: passwordController,
+                              obscureText: _isPasswordVisible,
+                              onSubmitted: (_) => _handleLogin(), // Submit on Enter
+                              style: TextStyle(fontSize: 16),
+                              decoration: InputDecoration(
+                                hintText: "Enter Password",
+                                hintStyle: TextStyle(fontSize: 16),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    // Choose the icon based on the visibility state
+                                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                  ),
+                                  onPressed: () {
+                                    // Update the state to toggle visibility
+                                    setState(() {
+                                      _isPasswordVisible = !_isPasswordVisible;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        
+                          // Forgot Password link - commented out as it has no function
+                          // Align(
+                          //   alignment: Alignment.centerRight,
+                          //   child: TextButton(
+                          //     onPressed: () {
+                          //       // TODO: Implement forgot password functionality
+                          //       ScaffoldMessenger.of(context).showSnackBar(
+                          //         const SnackBar(content: Text('Forgot password feature coming soon!')),
+                          //       );
+                          //     },
+                          //     child: Text(
+                          //       "Forgot Password?",
+                          //       style: TextStyle(
+                          //         color: Colors.white,
+                          //         fontSize: 14,
+                          //         decoration: TextDecoration.underline,
+                          //         decorationColor: Colors.white,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                          const SizedBox(height: 32), // Increased by 7 to compensate (was 25, now 32)
+                          if (_loading)
+                            const CircularProgressIndicator(color: Colors.white)
+                          else
+                            SizedBox(
+                              width: double.infinity,
+                              height: 55, // Increased from 50
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: Color(0xFF93b9e1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: _handleLogin,
+                                child: Text(
+                                  "Login",
+                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), // Increased from 20
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -239,12 +337,49 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyle(
                       //decoration: TextDecoration,
                       color: Colors.grey[700],
-                      fontSize: 16,
+                      fontSize: 18, // Increased from 16
+                      fontWeight: FontWeight.w500, // Added weight
                     ),
                     ),
                     
                   ),
              
+
+                const SizedBox(height: 20),
+                
+                // Footer section with app info
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      Divider(color: Colors.grey[300], thickness: 1),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.security, color: Colors.grey[600], size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Secure • Trusted • Easy",
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "© 2025 Hippo Exchange",
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
                 const SizedBox(height: 10),
               ],
@@ -256,24 +391,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Helper method to build static empty circles
-  Widget _buildStaticItem() {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 5,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 
