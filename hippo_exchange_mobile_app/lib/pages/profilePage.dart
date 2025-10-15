@@ -50,14 +50,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final _db = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: AuthService.kFirestoreDbId);
     final DocumentReference userProfileRef = _db.collection('profiles').doc(user?.uid);
     final userProfile = await userProfileRef.get();
-    final firstName = userProfile['firstName'];
-    final lastName = userProfile['lastName'];
-    final address = userProfile['address'];
+    final loadedFirstName = userProfile['firstName'] ?? '';
+    final loadedLastName = userProfile['lastName'] ?? '';
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         setState(() {
+          firstName = loadedFirstName;
+          lastName = loadedLastName;
           email = user.email ?? "No email";
           accountCreationDate = user.metadata.creationTime?.toString().split(' ')[0] ?? "Unknown";
           _isLoading = false;
@@ -99,15 +99,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
       // Save changes when switching back from edit mode
       try {
         // Update local variables (only name since email is hidden)
-        firstName = _firstNameController.text;
-        lastName = _lastNameController.text;
-        
+        final newFirstName = _firstNameController.text;
+        final newLastName = _lastNameController.text;
+
         // Update Firebase profile
         await AuthService().updateUserProfile(
-          firstName: firstName.isNotEmpty ? firstName : null,
-          lastName: lastName.isNotEmpty ? lastName : null,
+          firstName: newFirstName.isNotEmpty ? newFirstName : null,
+          lastName: newLastName.isNotEmpty ? newLastName : null,
         );
         
+        setState(() {
+          firstName = newFirstName;
+          lastName = newLastName;
+        });
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile updated successfully!')),
@@ -136,7 +141,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white, fontSize: 16),
         prefixIcon: Icon(
-          label == "Name" ? Icons.person : Icons.email,
+          label.contains("Name") ? Icons.person : Icons.email,
           color: Colors.white,
           size: 24,
         ),
@@ -236,6 +241,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Widget _buildDisplayMode() {
+    final lastInitial = lastName.isNotEmpty ? '${lastName[0]}.' : '';
+    final displayName = '$firstName $lastInitial';
+
     return Column(
       children: [
         // Profile avatar in blue circle - larger
@@ -272,7 +280,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             padding: const EdgeInsets.all(32),
             child: Column(
               children: [
-                _buildInfoRow(Icons.person, "Name", firstName),
+                _buildInfoRow(Icons.person, "Name", displayName),
                 const SizedBox(height: 24),
                 _buildInfoRow(Icons.email, "Email", email),
                 if (accountCreationDate != null) ...[
@@ -333,7 +341,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 30),
-            _buildEditField("Name", _firstNameController),
+            _buildEditField("First Name", _firstNameController),
+            const SizedBox(height: 20),
+            _buildEditField("Last Name", _lastNameController),
             const SizedBox(height: 30),
             
             // Save button - larger and below edit fields
