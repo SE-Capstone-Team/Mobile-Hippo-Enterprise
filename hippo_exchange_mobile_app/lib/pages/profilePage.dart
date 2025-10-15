@@ -121,7 +121,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error updating profile: ${e.toString()}')),
+            SnackBar(content: Text(AuthService().mapFirebaseError(e))),
           );
         }
       }
