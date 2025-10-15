@@ -404,11 +404,36 @@ class _RegisterPageState extends State<RegistrationPage> {
                   if (!_loading)
                     TextButton(
                       onPressed: widget.onLoginTap,
-                      child: Text(
-                        "- Already have an account? Login here -",
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 16,
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "- Already have an account? ",
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            TextSpan(
+                              text: "Login here",
+                              style: TextStyle(
+                                color: Colors.blue[800], // Dark blue color
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.blue[800],
+                              ),
+                            ),
+                            TextSpan(
+                              text: " -",
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

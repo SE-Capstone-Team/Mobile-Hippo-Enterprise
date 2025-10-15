@@ -150,15 +150,22 @@ class AuthService {
 
       final itemRef = _items.doc(itemId);
 
-      await _db.runTransaction((txn) async {
-        final itemSnap = await txn.get(itemRef);
-        if (!itemSnap.exists) {
-          throw Exception('Item not found');
-        }
-        final item = itemSnap.data() as Map<String, dynamic>;
-        if (item['isLent'] == true) {
-          throw Exception('Item already lent');
-        }
+
+        await _db.runTransaction((txn) async {
+          final itemSnap = await txn.get(itemRef);
+          if (!itemSnap.exists) {
+            throw Exception('Item not found');
+          }
+          final item = itemSnap.data() as Map<String, dynamic>;
+          if (item['isLent'] == true) {
+            throw Exception('Item already lent');
+          }
+          
+          // Check if user is trying to borrow their own item
+          final ownerId = item['ownerId'];
+          if (ownerId is DocumentReference && ownerId.id == user.uid) {
+            throw Exception('You cannot borrow your own item');
+          }
 
         txn.update(itemRef, {
           'isLent': true,
@@ -219,35 +226,124 @@ class AuthService {
     } //endregion
 
     //region laymen's termed firebase errors
-    String mapAuthError(Object e) {
+    String mapFirebaseError(Object e) {
+      // Handle Authentication errors
       if (e is FirebaseAuthException) {
-        switch (e.code) {
-          case 'invalid-credential':
-            return 'Email or password is Incorrect!';
-          case 'channel-error':
-            return 'Missing Email or password';
-          case 'invalid-email':
-            return 'That email address is malformed.';
-          case 'user-disabled':
-            return 'This account has been disabled.';
-          case 'user-not-found':
-            return 'No user found with that email.';
-          case 'wrong-password':
-            return 'Incorrect password.';
-          case 'email-already-in-use':
-            return 'Email is already registered.';
-          case 'operation-not-allowed':
-            return 'Sign-in method is disabled.';
-          case 'too-many-requests':
-            return 'Too many attempts. Try again later.';
-          case 'network-request-failed':
-            return 'Network error. Check connection.';
-          case 'unauthorized':
-            return 'User is not Authenticated!';
-          default:
-            return e.message ?? 'Authentication error occurred.';
-        }
+        return _mapAuthError(e);
       }
+      
+      // Handle Firestore errors
+      if (e is FirebaseException) {
+        return _mapFirestoreError(e);
+      }
+      
+      // Handle general exceptions with specific messages
+      if (e is Exception) {
+        return _mapGeneralError(e);
+      }
+      
       return 'Something went wrong. Please try again.';
+    }
+    
+    String _mapAuthError(FirebaseAuthException e) {
+      switch (e.code) {
+        case 'invalid-credential':
+          return 'Email or password is Incorrect!';
+        case 'channel-error':
+          return 'Missing Email or password';
+        case 'invalid-email':
+          return 'That email address is malformed.';
+        case 'user-disabled':
+          return 'This account has been disabled.';
+        case 'user-not-found':
+          return 'No user found with that email.';
+        case 'wrong-password':
+          return 'Incorrect password.';
+        case 'email-already-in-use':
+          return 'Email is already registered.';
+        case 'operation-not-allowed':
+          return 'Sign-in method is disabled.';
+        case 'too-many-requests':
+          return 'Too many attempts. Try again later.';
+        case 'network-request-failed':
+          return 'Network error. Check connection.';
+        case 'unauthorized':
+          return 'User is not Authenticated!';
+        default:
+          return e.message ?? 'Authentication error occurred.';
+      }
+    }
+    
+    String _mapFirestoreError(FirebaseException e) {
+      switch (e.code) {
+        case 'permission-denied':
+          return 'You don\'t have permission to perform this action.';
+        case 'unavailable':
+          return 'Service is temporarily unavailable. Please try again.';
+        case 'deadline-exceeded':
+          return 'Request timed out. Please check your connection and try again.';
+        case 'resource-exhausted':
+          return 'Too many requests. Please try again later.';
+        case 'cancelled':
+          return 'Operation was cancelled.';
+        case 'data-loss':
+          return 'Data corruption detected. Please contact support.';
+        case 'unauthenticated':
+          return 'Please sign in to continue.';
+        case 'invalid-argument':
+          return 'Invalid data provided. Please check your input.';
+        case 'not-found':
+          return 'The requested item was not found.';
+        case 'already-exists':
+          return 'This item already exists.';
+        case 'failed-precondition':
+          return 'Operation failed due to conflicting changes. Please refresh and try again.';
+        case 'aborted':
+          return 'Operation was interrupted due to a conflict. Please try again.';
+        case 'out-of-range':
+          return 'Invalid range specified.';
+        case 'unimplemented':
+          return 'This feature is not available yet.';
+        case 'internal':
+          return 'Internal server error. Please try again later.';
+        case 'unknown':
+          return 'An unknown error occurred. Please try again.';
+        default:
+          return e.message ?? 'Database error occurred.';
+      }
+    }
+    
+    String _mapGeneralError(Exception e) {
+      final message = e.toString();
+      
+      // Handle custom exceptions from our app logic
+      if (message.contains('Not signed in')) {
+        return 'Please sign in to continue.';
+      }
+      if (message.contains('Item not found')) {
+        return 'This item is no longer available.';
+      }
+      if (message.contains('Item already lent')) {
+        return 'Sorry, this item was just borrowed by someone else. Please try another item.';
+      }
+      if (message.contains('You cannot borrow your own item')) {
+        return 'You cannot borrow your own item.';
+      }
+      if (message.contains('timeout') || message.contains('Timeout')) {
+        return 'The request timed out. This might happen if someone else just borrowed the item. Please refresh and try again.';
+      }
+      if (message.contains('network') || message.contains('Network')) {
+        return 'Network error. Please check your connection and try again.';
+      }
+      if (message.contains('storage') || message.contains('Storage')) {
+        return 'Error uploading image. Please try again.';
+      }
+      
+      return 'Something went wrong. Please try again.';
+    }
+
+    // Legacy method for backward compatibility
+    String mapAuthError(Object e) {
+      return mapFirebaseError(e);
     } //endregion
   }

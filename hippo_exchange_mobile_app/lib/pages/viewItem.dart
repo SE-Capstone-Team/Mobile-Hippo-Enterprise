@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
 
 class ViewItemPage extends StatefulWidget {
   final String itemId;
@@ -407,7 +409,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
                 ),
                 const SizedBox(height: 12),
 
-                _buildOwnerName(),
+                _buildOwnerDetailRow(),
                 const SizedBox(height: 12),
                 _buildDetailRow('Item Location', address),
                 const SizedBox(height: 12),
@@ -462,6 +464,22 @@ class _ViewItemPageState extends State<ViewItemPage> {
         ],
       ),
     );
+  }
+
+  Future<String> _getOwnerName(DocumentReference ownerRef) async {
+    try {
+      final doc = await ownerRef.get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>?;
+        final firstName = data?['firstName'] ?? '';
+        final lastName = data?['lastName'] ?? '';
+        return '$firstName $lastName'.trim();
+      }
+      return 'Unknown Owner';
+    } catch (e) {
+      debugPrint("Error fetching owner name: $e");
+      return 'Owner info unavailable';
+    }
   }
 
   Widget _buildOwnerDetailRow() {

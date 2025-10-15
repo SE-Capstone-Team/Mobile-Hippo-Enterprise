@@ -333,15 +333,38 @@ class _LoginPageState extends State<LoginPage> {
                 if (!_loading)
                   TextButton(
                     onPressed: widget.onRegisterTap,
-                    child:Text( "- Need to create an account? -",
-                    style: TextStyle(
-                      //decoration: TextDecoration,
-                      color: Colors.grey[700],
-                      fontSize: 18, // Increased from 16
-                      fontWeight: FontWeight.w500, // Added weight
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "- Need to create an account? ",
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          TextSpan(
+                            text: "Click Here",
+                            style: TextStyle(
+                              color: Colors.blue[800], // Dark blue color
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.blue[800],
+                            ),
+                          ),
+                          TextSpan(
+                            text: " -",
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    ),
-                    
                   ),
              
 
