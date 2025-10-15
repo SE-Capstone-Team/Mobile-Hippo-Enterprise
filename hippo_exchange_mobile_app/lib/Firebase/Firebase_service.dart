@@ -40,24 +40,18 @@ class AuthService {
   Stream<User?> get authState => _auth.authStateChanges();
 
   // Update user profile information
-  //firstname lastname
   Future<void> updateUserProfile({
-    String? firstName, String? lastName,
+    String? firstName,
+    String? lastName,
+    String? address,
   }) async {
     final user = _auth.currentUser;
     if (user != null) {
-      if (firstName != null) {
-        await user.updateDisplayName(firstName);
-      }
-      if (lastName != null) {
-        await user.updateDisplayName(lastName);
-      }
-
       // Update additional profile info in Firestore
       await _db.collection('profiles').doc(user.uid).update({
-        if (firstName != null || lastName != null)
-          'firstName': firstName,
-        'lastName': lastName,
+        if (firstName != null) 'firstName': firstName,
+        if (lastName != null) 'lastName': lastName,
+        if (address != null) 'address': address,
       });
     }
   }
@@ -105,7 +99,7 @@ class AuthService {
     final imageUrl = await _uploadImage(image);
     final DocumentReference userProfileRef = _profiles.doc(user.uid);
     final userProfile = await userProfileRef.get();
-    final location = userProfile['address'];
+    final location = (userProfile.data() as Map<String, dynamic>)['address'];
 
     await _items.add({
       'name': name,
@@ -126,10 +120,9 @@ class AuthService {
         return Stream.empty(); // Or handle appropriately
       }
 
-      // Get the DocumentReference to the current user's profile
       final DocumentReference userProfileRef = _profiles.doc(user.uid);
 
-      return _items // _items is your CollectionReference<Map<String, dynamic>> to the 'items' collection
+      return _items
           .where('ownerId', isEqualTo: userProfileRef)
           .orderBy('name', descending: true)
           .snapshots();
@@ -137,8 +130,6 @@ class AuthService {
 
     //region Available Items for Home Page
     Stream<QuerySnapshot<Map<String, dynamic>>> streamAvailableItems() {
-      // Stream all items that are not currently lent (available for borrowing)
-      // Note: Filtering for current user's items will be done in the UI layer
       return _items
           .where('isLent', isEqualTo: false)
           .orderBy('name')
@@ -150,10 +141,13 @@ class AuthService {
       required String itemId,
       DateTime? dueAt,
     }) async {
-      final user = _auth.currentUser;
+      final user = _auth.currentUser; // This is the borrower
       if (user == null) throw Exception('Not signed in');
 
-      final DocumentReference borrowerRef = _profiles.doc(user.uid);
+      final DocumentReference borrowerIdRef = _profiles.doc(user.uid);
+      final borrowerProfile = await borrowerIdRef.get();
+      final borrowerAddress = (borrowerProfile.data() as Map<String, dynamic>)['address'];
+
       final itemRef = _items.doc(itemId);
 
       await _db.runTransaction((txn) async {
@@ -165,16 +159,11 @@ class AuthService {
         if (item['isLent'] == true) {
           throw Exception('Item already lent');
         }
-        
-        // Check if user is trying to borrow their own item
-        final ownerId = item['ownerId'];
-        if (ownerId is DocumentReference && ownerId.id == user.uid) {
-          throw Exception('You cannot borrow your own item');
-        }
 
         txn.update(itemRef, {
           'isLent': true,
-          'borrowerId': borrowerRef,
+          'borrowerId': borrowerIdRef,
+          'location': borrowerAddress, // Update location to borrower's address
           'borrowedOn': FieldValue.serverTimestamp(),
           'dueAt': dueAt != null ? Timestamp.fromDate(dueAt) : null,
         });
@@ -184,7 +173,7 @@ class AuthService {
     Stream<QuerySnapshot<Map<String, dynamic>>> streamBorrowedItems() {
       final user = _auth.currentUser;
       if (user == null) {
-        return Stream.empty(); // Or handle appropriately
+        return Stream.empty();
       }
       final DocumentReference userProfileRef = _profiles.doc(user.uid);
 
@@ -201,10 +190,17 @@ class AuthService {
         final itemSnap = await txn.get(itemRef);
         if (!itemSnap.exists) throw Exception('Item not found');
 
-        // Clear item’s active state
+        final itemData = itemSnap.data() as Map<String, dynamic>;
+        final ownerIdRef = itemData['ownerId'] as DocumentReference;
+        final ownerProfileSnap = await txn.get(ownerIdRef);
+        if (!ownerProfileSnap.exists) throw Exception('Owner not found');
+        final ownerAddress = (ownerProfileSnap.data() as Map<String, dynamic>)['address'];
+
+        // When returned, clear borrower info and revert location
         txn.update(itemRef, {
           'isLent': false,
           'borrowerId': null,
+          'location': ownerAddress,
           'borrowedOn': null,
           'dueAt': null,
         });

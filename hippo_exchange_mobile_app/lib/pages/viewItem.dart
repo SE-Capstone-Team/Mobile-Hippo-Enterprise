@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,9 +9,9 @@ class ViewItemPage extends StatefulWidget {
   final String itemId;
   final Map<String, dynamic>? itemData; // Optional pre-loaded data
   final bool showBorrowButton; // Whether to show borrow functionality
-  
+
   const ViewItemPage({
-    super.key, 
+    super.key,
     required this.itemId,
     this.itemData,
     this.showBorrowButton = false, // Default to false
@@ -23,15 +24,10 @@ class ViewItemPage extends StatefulWidget {
 class _ViewItemPageState extends State<ViewItemPage> {
   Map<String, dynamic>? _itemData;
   bool _isLoading = true;
-  late final FirebaseFirestore db;
 
   @override
   void initState() {
     super.initState();
-    db = FirebaseFirestore.instanceFor(
-      app: Firebase.app(),
-      databaseId: 'inventory-db',
-    );
     if (widget.itemData != null) {
       _itemData = widget.itemData;
       _isLoading = false;
@@ -42,8 +38,11 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   Future<void> _loadItemData() async {
     try {
-      final doc = await db.collection('items').doc(widget.itemId).get();
-      
+      final doc = await FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: 'inventory-db',
+      ).collection('items').doc(widget.itemId).get();
+
       if (doc.exists) {
         setState(() {
           _itemData = doc.data();
@@ -59,24 +58,6 @@ class _ViewItemPageState extends State<ViewItemPage> {
           SnackBar(content: Text('Error loading item: $e')),
         );
       }
-    }
-  }
-
-  Future<String> _getOwnerName(DocumentReference ownerId) async {
-    try {
-      // Use the Firebase service instance to get owner info using the same database config
-      final ownerDoc = await db.collection('profiles').doc(ownerId.id).get();
-      if (ownerDoc.exists) {
-        final ownerData = ownerDoc.data();
-        final firstName = ownerData?['firstName'] ?? '';
-        final lastName = ownerData?['lastName'] ?? '';
-        final ownerName = '$firstName $lastName'.trim();
-        return ownerName.isNotEmpty ? ownerName : 'Unknown Owner';
-      }
-      return 'Unknown Owner';
-    } catch (e) {
-      debugPrint("ViewItemPage: Error fetching owner name: $e");
-      return 'Owner info unavailable';
     }
   }
 
@@ -107,7 +88,6 @@ class _ViewItemPageState extends State<ViewItemPage> {
       );
 
       if (confirmed == true) {
-        // Show loading indicator
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -118,16 +98,12 @@ class _ViewItemPageState extends State<ViewItemPage> {
           ),
         );
 
-        // Call Firebase borrowing method
         await AuthService().startBorrow(
           itemId: widget.itemId,
-          dueAt: DateTime.now().add(Duration(days: 7)), // Default 7 days from now
         );
 
-        // Close loading dialog
         Navigator.of(context).pop();
 
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Successfully borrowed "${_itemData!['name']}"!'),
@@ -136,15 +112,11 @@ class _ViewItemPageState extends State<ViewItemPage> {
           ),
         );
 
-        // Go back to home page
         Navigator.of(context).pop();
       }
     } catch (e) {
-      // Close any open dialogs
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-      
+      Navigator.of(context).pop();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error borrowing item: ${e.toString()}'),
@@ -175,18 +147,18 @@ class _ViewItemPageState extends State<ViewItemPage> {
     final itemName = _itemData!['name'] ?? 'Unnamed Item';
     final itemDesc = _itemData!['desc'] ?? 'No description available';
     final isLent = _itemData!['isLent'] == true;
+    final address = _itemData!['location'] ?? 'Not available';
     final imageUrl = _itemData!['picture'];
-    
-    // Format dates
+
     String? borrowedDate;
     String? dueDate;
-    
+
     if (_itemData!['borrowedOn'] != null) {
       final borrowedOnTimestamp = _itemData!['borrowedOn'] as Timestamp;
-      final borrowedDateTime = borrowedOnTimestamp.toDate().toLocal();
-      borrowedDate = "${borrowedDateTime.year}-${borrowedDateTime.month.toString().padLeft(2, '0')}-${borrowedDateTime.day.toString().padLeft(2, '0')}";
+      final borrowedOnDateTime = borrowedOnTimestamp.toDate().toLocal();
+      borrowedDate = "${borrowedOnDateTime.year}-${borrowedOnDateTime.month.toString().padLeft(2, '0')}-${borrowedOnDateTime.day.toString().padLeft(2, '0')}";
     }
-    
+
     if (_itemData!['dueAt'] != null) {
       final dueAtTimestamp = _itemData!['dueAt'] as Timestamp;
       final dueDateTime = dueAtTimestamp.toDate().toLocal();
@@ -198,7 +170,6 @@ class _ViewItemPageState extends State<ViewItemPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Large image space with rounded corners
           Container(
             width: double.infinity,
             height: 250,
@@ -242,10 +213,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
                     ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
-          // Item title
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -280,10 +250,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
-          // Description
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -318,10 +287,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
-          // Item details
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -345,21 +313,23 @@ class _ViewItemPageState extends State<ViewItemPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
-                _buildOwnerDetailRow(),
+
+                _buildOwnerName(),
                 const SizedBox(height: 12),
-                
+                _buildDetailRow('Item Location', address),
+                const SizedBox(height: 12),
+
                 _buildDetailRow(
-                  'Status', 
+                  'Status',
                   isLent ? 'Currently Borrowed' : 'Available',
                   statusColor: isLent ? Colors.red : Colors.green,
                 ),
-                
+
                 if (borrowedDate != null) ...[
                   const SizedBox(height: 12),
                   _buildDetailRow('Borrowed On', borrowedDate),
                 ],
-                
+
                 if (dueDate != null) ...[
                   const SizedBox(height: 12),
                   _buildDetailRow('Due Date', dueDate),
@@ -367,10 +337,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
-          // Borrow Button (only show if from home page and item is available)
+
           if (widget.showBorrowButton && !isLent) ...[
             SizedBox(
               width: double.infinity,
@@ -401,34 +370,31 @@ class _ViewItemPageState extends State<ViewItemPage> {
     );
   }
 
-  Widget _buildOwnerDetailRow() {
-    final ownerId = _itemData!['ownerId'];
-    
-    // Debug: Print the ownerId to understand its structure
-    debugPrint("ViewItemPage: ownerId type: ${ownerId.runtimeType}, value: $ownerId");
-    
-    // Handle the case where ownerId is a DocumentReference
-    if (ownerId is DocumentReference) {
-      return FutureBuilder<String>(
-        future: _getOwnerName(ownerId),
-        builder: (context, ownerSnapshot) {
-          if (ownerSnapshot.hasData) {
-            return _buildDetailRow('Owner', ownerSnapshot.data!);
-          }
-          
-          if (ownerSnapshot.hasError) {
-            debugPrint("ViewItemPage: Owner lookup error: ${ownerSnapshot.error}");
-            return _buildDetailRow('Owner', 'Owner info unavailable');
-          }
-          
-          return _buildDetailRow('Owner', 'Loading...');
-        },
-      );
+  Widget _buildOwnerName() {
+    final ownerId = _itemData!['ownerId'] as DocumentReference?;
+
+    if (ownerId == null) {
+      return _buildDetailRow('Owner', 'Unknown');
     }
-    
-    // Fallback for any other data type or null
-    debugPrint("ViewItemPage: ownerId is not DocumentReference. Type: ${ownerId.runtimeType}, value: $ownerId");
-    return _buildDetailRow('Owner', 'Unknown Owner (${ownerId?.runtimeType ?? 'null'})');
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: ownerId.get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildDetailRow('Owner', 'Loading...');
+        }
+        if (snapshot.hasError || !snapshot.data!.exists) {
+          return _buildDetailRow('Owner', 'Unknown');
+        }
+
+        final ownerData = snapshot.data!.data() as Map<String, dynamic>?;
+        final firstName = ownerData?['firstName'] ?? '';
+        final lastName = ownerData?['lastName'] ?? '';
+        final displayName = '$firstName $lastName'.trim();
+
+        return _buildDetailRow('Owner', displayName.isNotEmpty ? displayName : 'Unnamed');
+      },
+    );
   }
 
   Widget _buildDetailRow(String label, String value, {Color? statusColor}) {
@@ -436,7 +402,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 100,
+          width: 120,
           child: Text(
             '$label:',
             style: const TextStyle(

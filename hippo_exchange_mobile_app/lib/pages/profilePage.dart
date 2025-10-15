@@ -6,7 +6,6 @@ import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 
 typedef LogoutCallback = void Function();
 
-
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
 
@@ -16,13 +15,14 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   bool _isEditing = false;
-  
+
   // User data from Firebase
   String firstName = "";
   String lastName = "";
   String email = "";
+  String address = "";
   String? accountCreationDate;
-  
+
   // Loading state
   bool _isLoading = true;
 
@@ -52,22 +52,24 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final userProfile = await userProfileRef.get();
     final loadedFirstName = userProfile['firstName'] ?? '';
     final loadedLastName = userProfile['lastName'] ?? '';
+    final loadedAddress = userProfile['address'] ?? '';
 
     try {
       if (user != null) {
         setState(() {
           firstName = loadedFirstName;
           lastName = loadedLastName;
+          address = loadedAddress;
           email = user.email ?? "No email";
           accountCreationDate = user.metadata.creationTime?.toString().split(' ')[0] ?? "Unknown";
           _isLoading = false;
         });
-        
+
         // Update text controllers with real data
         _firstNameController.text = firstName;
         _lastNameController.text = lastName;
+        _addressController.text = address;
         _emailController.text = email;
-
       }
     } catch (e) {
       setState(() {
@@ -85,8 +87,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
-
-
+  final TextEditingController _addressController = TextEditingController();
 
   @override
   void initState() {
@@ -98,19 +99,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (_isEditing) {
       // Save changes when switching back from edit mode
       try {
-        // Update local variables (only name since email is hidden)
         final newFirstName = _firstNameController.text;
         final newLastName = _lastNameController.text;
+        final newAddress = _addressController.text;
 
         // Update Firebase profile
         await AuthService().updateUserProfile(
           firstName: newFirstName.isNotEmpty ? newFirstName : null,
           lastName: newLastName.isNotEmpty ? newLastName : null,
+          address: newAddress.isNotEmpty ? newAddress : null,
         );
-        
+
         setState(() {
           firstName = newFirstName;
           lastName = newLastName;
+          address = newAddress;
         });
 
         if (mounted) {
@@ -126,7 +129,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         }
       }
     }
-    
+
     setState(() {
       _isEditing = !_isEditing;
     });
@@ -141,7 +144,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white, fontSize: 16),
         prefixIcon: Icon(
-          label.contains("Name") ? Icons.person : Icons.email,
+          label.contains("Name")
+              ? Icons.person
+              : label == "Address"
+                  ? Icons.location_city
+                  : Icons.email,
           color: Colors.white,
           size: 24,
         ),
@@ -227,16 +234,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Center(
-            child: SingleChildScrollView(
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.9,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _isEditing
-                    ? _buildEditMode()
-                    : _buildDisplayMode(),
+              child: SingleChildScrollView(
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _isEditing ? _buildEditMode() : _buildDisplayMode(),
+                ),
               ),
             ),
-          ),
     );
   }
 
@@ -268,7 +273,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),
         ),
         const SizedBox(height: 40),
-        
+
         // User info in blue card - larger padding and text
         Card(
           elevation: 4,
@@ -283,6 +288,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 _buildInfoRow(Icons.person, "Name", displayName),
                 const SizedBox(height: 24),
                 _buildInfoRow(Icons.email, "Email", email),
+                const SizedBox(height: 24),
+                _buildInfoRow(Icons.location_city, "Address", address),
                 if (accountCreationDate != null) ...[
                   const SizedBox(height: 24),
                   _buildInfoRow(Icons.calendar_today, "Account Created", accountCreationDate!),
@@ -292,7 +299,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),
         ),
         const SizedBox(height: 40),
-        
+
         // Logout button - less prominent
         SizedBox(
           width: double.infinity,
@@ -344,8 +351,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
             _buildEditField("First Name", _firstNameController),
             const SizedBox(height: 20),
             _buildEditField("Last Name", _lastNameController),
+            const SizedBox(height: 20),
+            _buildEditField("Address", _addressController),
             const SizedBox(height: 30),
-            
+
             // Save button - larger and below edit fields
             SizedBox(
               width: double.infinity,
