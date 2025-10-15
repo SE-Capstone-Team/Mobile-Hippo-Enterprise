@@ -60,7 +60,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading item: $e')),
+          SnackBar(content: Text(AuthService().mapFirebaseError(e))),
         );
       }
     }
@@ -161,7 +161,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error borrowing item: ${e.toString()}'),
+          content: Text(AuthService().mapFirebaseError(e)),
           backgroundColor: Colors.red,
         ),
       );

@@ -150,7 +150,7 @@ class _LendingPageState extends State<LendingPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text(AuthService().mapFirebaseError(snapshot.error!)));
           }
           final docs = snapshot.data?.docs ?? [];
           if (docs.isEmpty) {

@@ -75,7 +75,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading user data: ${e.toString()}')),
+          SnackBar(content: Text(AuthService().mapFirebaseError(e))),
         );
       }
     }

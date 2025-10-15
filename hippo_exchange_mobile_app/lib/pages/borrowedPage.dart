@@ -156,7 +156,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text(AuthService().mapFirebaseError(snapshot.error!)));
           }
           final docs = snapshot.data?.docs ?? [];
           if (docs.isEmpty) {
@@ -526,7 +526,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error returning item: ${e.toString()}'),
+          content: Text(AuthService().mapFirebaseError(e)),
           backgroundColor: Colors.red,
         ),
       );

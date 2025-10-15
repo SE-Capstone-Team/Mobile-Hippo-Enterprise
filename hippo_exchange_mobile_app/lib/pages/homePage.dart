@@ -240,31 +240,21 @@ class _HomePageState extends State<HomePage> {
                 Icon(
                   Icons.error_outline,
                   size: 64,
-                  color: Colors.red[400],
+                  color: Colors.grey[600],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   'Error loading items',
                   style: TextStyle(
                     fontSize: 18,
-                    color: Colors.red[600],
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
-                  '${snapshot.error}',
+                  AuthService().mapFirebaseError(snapshot.error!),
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Please check your connection and try again.',
-                  style: TextStyle(
-                    fontSize: 14,
                     color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,

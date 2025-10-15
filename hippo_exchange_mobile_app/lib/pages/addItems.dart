@@ -79,7 +79,7 @@ class _AddItemPageState extends State<AddItemPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error adding item: $e")),
+        SnackBar(content: Text(AuthService().mapFirebaseError(e))),
       );
     } finally {
       if (mounted) {
