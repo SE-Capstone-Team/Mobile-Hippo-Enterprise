@@ -152,6 +152,50 @@ class _ViewItemPageState extends State<ViewItemPage> {
     }
   }
 
+  Future<void> _returnItem() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Return Item'),
+        content: Text('Are you sure you want to return "${_itemData!['name']}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Return'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await AuthService().returnItem(itemId: widget.itemId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('"${_itemData!['name']}" has been returned successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop(); // Go back
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AuthService().mapFirebaseError(e)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _saveChanges() async {
     if (!_isEditing) return;
@@ -194,10 +238,12 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isLent = _itemData!['isLent'] == true;
     final isOwner = _itemData != null &&
         (_itemData!['ownerId'] as DocumentReference).id ==
             FirebaseAuth.instance.currentUser?.uid;
+    final isLent = _itemData!['isLent'] == true;
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final isBorrower = _itemData!['borrowerId'] != null && (_itemData!['borrowerId'] as DocumentReference).id == currentUserId;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
@@ -348,6 +394,21 @@ class _ViewItemPageState extends State<ViewItemPage> {
                 child: const Text('Borrow This Item', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               ),
             ),
+            
+            if (isBorrower)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _returnItem,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Return Item', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                ),
+              )
         ],
       ),
     );

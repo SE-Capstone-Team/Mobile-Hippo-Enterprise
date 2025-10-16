@@ -25,6 +25,50 @@ class _BorrowingPageState extends State<BorrowingPage> {
     );
   }
 
+  Future<void> _returnItem(String itemId, String itemName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Return Item'),
+        content: Text('Are you sure you want to return "$itemName"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Return'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await AuthService().returnItem(itemId: itemId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('"$itemName" has been returned successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AuthService().mapFirebaseError(e)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,15 +114,6 @@ class _BorrowingPageState extends State<BorrowingPage> {
             height: 1.0,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF93b9e1),
-            ),
-          ),
-        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: AuthService().streamBorrowedItems(),
@@ -91,10 +126,8 @@ class _BorrowingPageState extends State<BorrowingPage> {
           }
           final docs = snapshot.data?.docs ?? [];
           if (docs.isEmpty) {
-            return const Center(child: Text('No items yet.'));
+            return const Center(child: Text('You are not borrowing any items.'));
           }
-
-          debugPrint("BorrowingPage: Found ${docs.length} borrowed items.");
 
           return ListView.separated(
               itemCount: docs.length,
@@ -105,7 +138,6 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 final data = d.data() as Map<String, dynamic>;
                 final itemName = data['name'] ?? 'Unnamed Item';
                 final ownerName = data['ownerDisplayName'] ?? 'Owner';
-                final itemDesc = data['desc'] ?? '';
                 final imageUrl = data['picture'];
                 final dueAtTimestamp = data['dueAt'] as Timestamp?;
 
@@ -132,170 +164,64 @@ class _BorrowingPageState extends State<BorrowingPage> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: const Color(0xFF93B9E1).withOpacity(0.2),
-                        width: 1,
-                      ),
+                      border: Border.all(color: const Color(0xFF93B9E1).withOpacity(0.2)),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          // Circular image placeholder
                           Container(
                             width: 60,
                             height: 60,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.blue.withOpacity(0.8),
-                                  Colors.indigo.withOpacity(0.6),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              border: Border.all(
-                                color: Colors.blue,
-                                width: 2,
-                              ),
+                              border: Border.all(color: Colors.blue, width: 2),
                             ),
                             child: ClipOval(
                                       child: imageUrl != null
-                                          ? Image.network(
-                                              imageUrl,
-                                              fit: BoxFit.cover,
-                                              width: 60,
-                                              height: 60,
-                                              loadingBuilder: (context, child,
-                                                  loadingProgress) {
-                                                if (loadingProgress == null) {
-                                                  return child;
-                                                }
-                                                return const Center(
-                                                    child: CircularProgressIndicator(
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<Color>(
-                                                          Colors.white),
-                                                ));
-                                              },
-                                              errorBuilder:
-                                                  (context, error, stackTrace) =>
-                                                      const Icon(
-                                                Icons.inventory_2,
-                                                color: Colors.white,
-                                                size: 28,
-                                              ),
-                                            )
-                                          : const Icon(
-                                              Icons.inventory_2,
-                                              color: Colors.white,
-                                              size: 28,
-                                            )),
+                                          ? Image.network(imageUrl, fit: BoxFit.cover, width: 60, height: 60)
+                                          : const Icon(Icons.inventory_2, color: Colors.white, size: 28)),
                           ),
                           const SizedBox(width: 16),
-                          
-                          // Expanded content area
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Item name
-                                Text(
-                                  itemName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Colors.black87,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                
+                                Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                                 const SizedBox(height: 6),
-                                
-                                // Description
-                                if (itemDesc.isNotEmpty) ...[
-                                  Text(
-                                    itemDesc,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                ],
-                                
-                                // Owner info
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: Colors.blue.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.blue.withOpacity(0.3),
-                                      width: 1,
-                                    ),
+                                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
                                   ),
-                                  child: Text(
-                                    'Borrowed from: $ownerName',
-                                    style: TextStyle(
-                                      color: Colors.blue[700],
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
-                                    ),
-                                  ),
+                                  child: Text('Borrowed from: $ownerName', style: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.w600)),
                                 ),
-                                
-                                const SizedBox(height: 8),
-                                
-                                // Payment Due
-                                if (dueDate != null)
+                                if (dueDate != null) ...[
+                                  const SizedBox(height: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: Colors.orange.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: Colors.orange.withOpacity(0.3),
-                                        width: 1,
-                                      ),
+                                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
                                     ),
-                                    child: Text(
-                                      'Payment Due: $dueDate',
-                                      style: TextStyle(
-                                        color: Colors.orange[700],
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
+                                    child: Text('Payment Due: $dueDate', style: TextStyle(color: Colors.orange[700], fontWeight: FontWeight.w600)),
                                   ),
+                                ],
                               ],
                             ),
                           ),
-                          
-                          // Status icon
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.assignment_outlined,
-                              color: Colors.blue[600],
-                              size: 24,
-                            ),
+                          Column(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.keyboard_return, color: Colors.green[600], size: 30),
+                                tooltip: 'Return Item',
+                                onPressed: () => _returnItem(d.id, itemName),
+                              ),
+                              Text("Return", style: TextStyle(color: Colors.green[600], fontWeight: FontWeight.bold)),
+                            ],
                           ),
                         ],
                       ),
@@ -305,7 +231,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
               }
           );
         },
-        ),
-      );
+      ),
+    );
   }
 }
