@@ -194,6 +194,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLent = _itemData!['isLent'] == true;
     final isOwner = _itemData != null &&
         (_itemData!['ownerId'] as DocumentReference).id ==
             FirebaseAuth.instance.currentUser?.uid;
@@ -205,7 +206,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
         backgroundColor: const Color(0xFF93B9E1),
         elevation: 0,
         actions: [
-          if (isOwner)
+          if (isOwner && !isLent) // Only show edit button if owner and not lent
             IconButton(
               icon: Icon(_isEditing ? Icons.save : Icons.edit),
               onPressed: () {
@@ -231,11 +232,24 @@ class _ViewItemPageState extends State<ViewItemPage> {
     final isLent = _itemData!['isLent'] == true;
     final address = _itemData!['location'] ?? 'Not available';
     final imageUrl = _itemData!['picture'];
+    final pricePerDay = _itemData!['pricePerDay'] as num? ?? 0;
+    final borrowedOnTimestamp = _itemData!['borrowedOn'] as Timestamp?;
+
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final isBorrower = _itemData!['borrowerId'] != null && (_itemData!['borrowerId'] as DocumentReference).id == currentUserId;
 
     String? borrowedDate, dueDate;
-    if (_itemData!['borrowedOn'] != null) {
-      borrowedDate = DateFormat('MMM d, yyyy').format((_itemData!['borrowedOn'] as Timestamp).toDate().toLocal());
+    String amountOwed = 'Free!';
+    if (borrowedOnTimestamp != null) {
+      final borrowedOn = borrowedOnTimestamp.toDate();
+      borrowedDate = DateFormat('MMM d, yyyy').format(borrowedOn.toLocal());
+      if (pricePerDay > 0) {
+        final daysBorrowed = DateTime.now().difference(borrowedOn).inDays;
+        final owed = (daysBorrowed + 1) * pricePerDay;
+        amountOwed = '\$${owed.toStringAsFixed(2)}';
+      }
     }
+    
     if (_itemData!['dueAt'] != null) {
       dueDate = DateFormat('MMM d, yyyy').format((_itemData!['dueAt'] as Timestamp).toDate().toLocal());
     }
@@ -291,14 +305,22 @@ class _ViewItemPageState extends State<ViewItemPage> {
                 const SizedBox(height: 12),
                 _buildDetailRow('Item Location', address),
                 const SizedBox(height: 12),
-                _buildEditableDetailRow(
-                  label: 'Price',
-                  value: '\$${_priceController.text}/day',
-                  controller: _priceController,
-                  isEditing: _isEditing,
-                ),
-                const SizedBox(height: 12),
+
+                if (isBorrower) ...[
+                  _buildDetailRow('Amount Owed', amountOwed, statusColor: Colors.orange[700]),
+                  const SizedBox(height: 12),
+                ] else ...[
+                   _buildEditableDetailRow(
+                    label: 'Price',
+                    value: pricePerDay > 0 ? '\$${_priceController.text}/day' : 'Free!',
+                    controller: _priceController,
+                    isEditing: _isEditing,
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
                 _buildDetailRow('Status', isLent ? 'Currently Borrowed' : 'Available', statusColor: isLent ? Colors.red : Colors.green),
+                
                 if (borrowedDate != null) ...[
                   const SizedBox(height: 12),
                   _buildDetailRow('Borrowed On', borrowedDate),

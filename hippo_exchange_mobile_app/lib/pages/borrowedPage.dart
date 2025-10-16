@@ -6,15 +6,8 @@ import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 import 'package:intl/intl.dart';
 
-//tasks
-//Step 1: pull from items database
-//step 2: display information in real time
-//step 3: display images without being locally stored
-
-// Widget for a single borrowed item row
 class BorrowingPage extends StatefulWidget {
   const BorrowingPage({super.key});
-
 
   @override
   State<BorrowingPage> createState() => _BorrowingPageState();
@@ -22,7 +15,6 @@ class BorrowingPage extends StatefulWidget {
 
 class _BorrowingPageState extends State<BorrowingPage> {
   late final FirebaseFirestore db;
-
 
   @override
   void initState() {
@@ -104,7 +96,6 @@ class _BorrowingPageState extends State<BorrowingPage> {
 
           debugPrint("BorrowingPage: Found ${docs.length} borrowed items.");
 
-
           return ListView.separated(
               itemCount: docs.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
@@ -116,11 +107,9 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 final ownerName = data['ownerDisplayName'] ?? 'Owner';
                 final itemDesc = data['desc'] ?? '';
                 final imageUrl = data['picture'];
-
-                final Timestamp? dueAtTimestamp = data['dueAt'] as Timestamp?;
+                final dueAtTimestamp = data['dueAt'] as Timestamp?;
 
                 String? dueDate;
-                
                 if (dueAtTimestamp != null) {
                   final dueDateTime = dueAtTimestamp.toDate().toLocal();
                   dueDate = DateFormat('MMM d, yyyy').format(dueDateTime);
@@ -270,8 +259,8 @@ class _BorrowingPageState extends State<BorrowingPage> {
                                 
                                 const SizedBox(height: 8),
                                 
-                                // Date information - stacked
-                                if (dueDate != null) ...[
+                                // Payment Due
+                                if (dueDate != null)
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                     decoration: BoxDecoration(
@@ -291,7 +280,6 @@ class _BorrowingPageState extends State<BorrowingPage> {
                                       ),
                                     ),
                                   ),
-                                ],
                               ],
                             ),
                           ),
