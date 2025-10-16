@@ -6,7 +6,7 @@
 
 
     <application
-        android:label="hippo_exchange_mobile_app"
+        android:label="Hippo Exchange"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
