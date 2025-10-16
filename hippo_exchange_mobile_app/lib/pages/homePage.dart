@@ -432,6 +432,8 @@ class FirebaseItemCard extends StatelessWidget {
     final name = itemData['name'] ?? 'Unnamed Item';
     final description = itemData['desc'] ?? '';
     final imageUrl = itemData['picture'];
+    final pricePerDay = itemData['pricePerDay'] as num?;
+    final isFree = pricePerDay == null || pricePerDay <= 0;
 
     return Card(
       color: Colors.white, // White card background
@@ -446,6 +448,7 @@ class FirebaseItemCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Item Image/Icon
                 Container(
@@ -498,6 +501,29 @@ class FirebaseItemCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       _buildLenderInfo(itemData),
                     ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Price Tag
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isFree
+                        ? Colors.green.withOpacity(0.15)
+                        : Color(0xFF93b9e1).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    isFree
+                        ? 'Free!'
+                        : '\$${pricePerDay?.toStringAsFixed(2)}/day',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isFree
+                          ? Colors.green[700]
+                          : Color(0xFF93b9e1),
+                    ),
                   ),
                 ),
               ],

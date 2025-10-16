@@ -92,7 +92,7 @@ class AuthService {
     return await uploadTask.ref.getDownloadURL();
   }
 
-  Future<void> createItem(String name, String desc, File image) async {
+  Future<void> createItem(String name, String desc, File image, double pricePerDay) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not signed in');
 
@@ -104,6 +104,7 @@ class AuthService {
     await _items.add({
       'name': name,
       'desc': desc,
+      'pricePerDay': pricePerDay,
       'picture': imageUrl,
       'ownerId': userProfileRef,
       'isLent': false,
@@ -139,7 +140,6 @@ class AuthService {
     //region Borrowing
     Future<void> startBorrow({
       required String itemId,
-      DateTime? dueAt,
     }) async {
       final user = _auth.currentUser; // This is the borrower
       if (user == null) throw Exception('Not signed in');
@@ -149,30 +149,24 @@ class AuthService {
       final borrowerAddress = (borrowerProfile.data() as Map<String, dynamic>)['address'];
 
       final itemRef = _items.doc(itemId);
+      final dueDate = DateTime.now().add(const Duration(days: 7));
 
-
-        await _db.runTransaction((txn) async {
-          final itemSnap = await txn.get(itemRef);
-          if (!itemSnap.exists) {
-            throw Exception('Item not found');
-          }
-          final item = itemSnap.data() as Map<String, dynamic>;
-          if (item['isLent'] == true) {
-            throw Exception('Item already lent');
-          }
-          
-          // Check if user is trying to borrow their own item
-          final ownerId = item['ownerId'];
-          if (ownerId is DocumentReference && ownerId.id == user.uid) {
-            throw Exception('You cannot borrow your own item');
-          }
+      await _db.runTransaction((txn) async {
+        final itemSnap = await txn.get(itemRef);
+        if (!itemSnap.exists) {
+          throw Exception('Item not found');
+        }
+        final item = itemSnap.data() as Map<String, dynamic>;
+        if (item['isLent'] == true) {
+          throw Exception('Item already lent');
+        }
 
         txn.update(itemRef, {
           'isLent': true,
           'borrowerId': borrowerIdRef,
           'location': borrowerAddress, // Update location to borrower's address
           'borrowedOn': FieldValue.serverTimestamp(),
-          'dueAt': dueAt != null ? Timestamp.fromDate(dueAt) : null,
+          'dueAt': Timestamp.fromDate(dueDate),
         });
       });
     }
@@ -222,29 +216,23 @@ class AuthService {
     //update
     Future<void> updateItem(String id, Map<String, dynamic> updates) async {
       updates['updatedAt'] = FieldValue.serverTimestamp();
-      await _items.doc(id).set(updates);
+      await _items.doc(id).update(updates);
     } //endregion
 
     //region laymen's termed firebase errors
     String mapFirebaseError(Object e) {
-      // Handle Authentication errors
       if (e is FirebaseAuthException) {
         return _mapAuthError(e);
       }
-      
-      // Handle Firestore errors
       if (e is FirebaseException) {
         return _mapFirestoreError(e);
       }
-      
-      // Handle general exceptions with specific messages
       if (e is Exception) {
         return _mapGeneralError(e);
       }
-      
       return 'Something went wrong. Please try again.';
     }
-    
+
     String _mapAuthError(FirebaseAuthException e) {
       switch (e.code) {
         case 'invalid-credential':
@@ -273,7 +261,7 @@ class AuthService {
           return e.message ?? 'Authentication error occurred.';
       }
     }
-    
+
     String _mapFirestoreError(FirebaseException e) {
       switch (e.code) {
         case 'permission-denied':
@@ -312,11 +300,10 @@ class AuthService {
           return e.message ?? 'Database error occurred.';
       }
     }
-    
+
     String _mapGeneralError(Exception e) {
       final message = e.toString();
-      
-      // Handle custom exceptions from our app logic
+
       if (message.contains('Not signed in')) {
         return 'Please sign in to continue.';
       }
@@ -338,12 +325,11 @@ class AuthService {
       if (message.contains('storage') || message.contains('Storage')) {
         return 'Error uploading image. Please try again.';
       }
-      
+
       return 'Something went wrong. Please try again.';
     }
 
-    // Legacy method for backward compatibility
     String mapAuthError(Object e) {
       return mapFirebaseError(e);
-    } //endregion
+    }
   }

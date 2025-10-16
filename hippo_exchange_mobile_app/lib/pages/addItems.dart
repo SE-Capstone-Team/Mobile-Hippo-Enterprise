@@ -19,6 +19,7 @@ class AddItemPage extends StatefulWidget {
 class _AddItemPageState extends State<AddItemPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
 
   final AuthService _authService = AuthService();
   final ImagePicker _picker = ImagePicker();
@@ -39,12 +40,14 @@ class _AddItemPageState extends State<AddItemPage> {
   void dispose() {
     _nameController.dispose();
     _descController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
   Future<void> _submitItem() async {
     if (_nameController.text.isEmpty ||
         _descController.text.isEmpty ||
+        _priceController.text.isEmpty ||
         _imageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -57,10 +60,20 @@ class _AddItemPageState extends State<AddItemPage> {
     setState(() => _isSubmitting = true);
 
     try {
+      double price = double.tryParse(_priceController.text) ?? 0.0;
+      if (price < 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Price cannot be negative.")),
+        );
+        setState(() => _isSubmitting = false); // Reset button
+        return;
+      }
+
       await _authService.createItem(
         _nameController.text,
         _descController.text,
         _imageFile!,
+        price,
       );
 
       // NEW: local + (optional) system banner notification
@@ -171,7 +184,7 @@ class _AddItemPageState extends State<AddItemPage> {
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: IntrinsicHeight(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start, // Aligns content to the top
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     GestureDetector(
@@ -213,6 +226,15 @@ class _AddItemPageState extends State<AddItemPage> {
                     ),
                     const SizedBox(height: 16),
                     TextField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: "Price Per Day",
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
                       controller: _descController,
                       decoration: const InputDecoration(
                         labelText: "Description",
@@ -249,4 +271,3 @@ class _AddItemPageState extends State<AddItemPage> {
     );
   }
 }
-
