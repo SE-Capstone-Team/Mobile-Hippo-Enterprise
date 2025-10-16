@@ -161,6 +161,12 @@ class AuthService {
           throw Exception('Item already lent');
         }
 
+        // NEW: Prevent user from borrowing their own item
+        final ownerId = item['ownerId'] as DocumentReference?;
+        if (ownerId?.id == user.uid) {
+          throw Exception('You cannot borrow your own item.');
+        }
+
         txn.update(itemRef, {
           'isLent': true,
           'borrowerId': borrowerIdRef,

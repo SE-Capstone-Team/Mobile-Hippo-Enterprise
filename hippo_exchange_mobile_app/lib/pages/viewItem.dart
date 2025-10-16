@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/intl.dart';
 
 class ViewItemPage extends StatefulWidget {
   final String itemId;
@@ -91,8 +92,66 @@ class _ViewItemPageState extends State<ViewItemPage> {
   }
 
   Future<void> _borrowItem() async {
-    // ... (borrow logic remains the same)
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Borrow'),
+          content: Text('Are you sure you want to borrow "${_itemData!['name']}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF93B9E1),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Borrow'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFF93B9E1)),
+      ),
+    );
+
+    try {
+      await AuthService().startBorrow(itemId: widget.itemId);
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Close loading dialog
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Successfully borrowed "${_itemData!['name']}"!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(context).pop(); // Go back to home page
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Close loading dialog
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AuthService().mapFirebaseError(e)),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
+
 
   Future<void> _saveChanges() async {
     if (!_isEditing) return;
@@ -175,10 +234,10 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
     String? borrowedDate, dueDate;
     if (_itemData!['borrowedOn'] != null) {
-      borrowedDate = (_itemData!['borrowedOn'] as Timestamp).toDate().toLocal().toString().split(' ')[0];
+      borrowedDate = DateFormat('MMM d, yyyy').format((_itemData!['borrowedOn'] as Timestamp).toDate().toLocal());
     }
     if (_itemData!['dueAt'] != null) {
-      dueDate = (_itemData!['dueAt'] as Timestamp).toDate().toLocal().toString().split(' ')[0];
+      dueDate = DateFormat('MMM d, yyyy').format((_itemData!['dueAt'] as Timestamp).toDate().toLocal());
     }
 
     return SingleChildScrollView(
@@ -246,7 +305,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
                 ],
                 if (dueDate != null) ...[
                   const SizedBox(height: 12),
-                  _buildDetailRow('Due Date', dueDate),
+                  _buildDetailRow('Payment Due', dueDate),
                 ],
               ],
             ),

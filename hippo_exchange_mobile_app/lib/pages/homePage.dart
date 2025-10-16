@@ -516,7 +516,7 @@ class FirebaseItemCard extends StatelessWidget {
                   child: Text(
                     isFree
                         ? 'Free!'
-                        : '\$${pricePerDay?.toStringAsFixed(2)}/day',
+                        : '\$${pricePerDay.toStringAsFixed(2)}/day',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
