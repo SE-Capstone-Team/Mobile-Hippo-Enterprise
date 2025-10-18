@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class BorrowingPage extends StatefulWidget {
   const BorrowingPage({super.key});
@@ -128,6 +129,11 @@ class _BorrowingPageState extends State<BorrowingPage> {
           if (docs.isEmpty) {
             return const Center(child: Text('You are not borrowing any items.'));
           }
+          
+          // Preload items into cache when we get fresh data
+          if (snapshot.data != null) {
+            AuthService().preloadItemsToCache(snapshot.data! as QuerySnapshot<Map<String, dynamic>>);
+          }
 
           return ListView.separated(
               itemCount: docs.length,
@@ -178,9 +184,26 @@ class _BorrowingPageState extends State<BorrowingPage> {
                               border: Border.all(color: Colors.blue, width: 2),
                             ),
                             child: ClipOval(
-                                      child: imageUrl != null
-                                          ? Image.network(imageUrl, fit: BoxFit.cover, width: 60, height: 60)
-                                          : const Icon(Icons.inventory_2, color: Colors.white, size: 28)),
+                              child: imageUrl != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: imageUrl,
+                                      fit: BoxFit.cover,
+                                      width: 60,
+                                      height: 60,
+                                      placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator(
+                                          color: Colors.blue,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) => const Icon(
+                                        Icons.inventory_2,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
+                                    )
+                                  : const Icon(Icons.inventory_2, color: Colors.white, size: 28),
+                            ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
