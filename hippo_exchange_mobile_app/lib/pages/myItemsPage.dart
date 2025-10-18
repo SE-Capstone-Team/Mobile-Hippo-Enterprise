@@ -9,6 +9,7 @@ import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 // NEW: notifications imports
 import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
 import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class LendingPage extends StatefulWidget {
   const LendingPage({super.key});
@@ -156,6 +157,11 @@ class _LendingPageState extends State<LendingPage> {
           if (docs.isEmpty) {
             return const Center(child: Text('No items yet.'));
           }
+          
+          // Preload items into cache when we get fresh data
+          if (snapshot.data != null) {
+            AuthService().preloadItemsToCache(snapshot.data! as QuerySnapshot<Map<String, dynamic>>);
+          }
 
           return ListView.separated(
             itemCount: docs.length,
@@ -229,37 +235,29 @@ class _LendingPageState extends State<LendingPage> {
                               ),
                             ),
                             child: ClipOval(
-                                      child: imageUrl != null
-                                          ? Image.network(
-                                              imageUrl,
-                                              fit: BoxFit.cover,
-                                              width: 60,
-                                              height: 60,
-                                              loadingBuilder: (context, child,
-                                                  loadingProgress) {
-                                                if (loadingProgress == null) {
-                                                  return child;
-                                                }
-                                                return const Center(
-                                                    child: CircularProgressIndicator(
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<Color>(
-                                                          Colors.white),
-                                                ));
-                                              },
-                                              errorBuilder:
-                                                  (context, error, stackTrace) =>
-                                                      const Icon(
-                                                Icons.inventory_2,
-                                                color: Colors.white,
-                                                size: 28,
-                                              ),
-                                            )
-                                          : const Icon(
-                                              Icons.inventory_2,
-                                              color: Colors.white,
-                                              size: 28,
-                                            )),
+                              child: imageUrl != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: imageUrl,
+                                      fit: BoxFit.cover,
+                                      width: 60,
+                                      height: 60,
+                                      placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) => const Icon(
+                                        Icons.inventory_2,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.inventory_2,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                            ),
                           ),
                           const SizedBox(width: 16),
                           
