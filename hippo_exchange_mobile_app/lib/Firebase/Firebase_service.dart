@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+import '../services/cache_service.dart';
 
 class AuthService {
   //region shortcuts to call in Firebase Service
@@ -20,6 +21,9 @@ class AuthService {
 
   CollectionReference<Map<String, dynamic>> get _profiles =>
       _db.collection('profiles');
+
+  // Cache service instance
+  final CacheService _cache = CacheService();
 
   //endregion
 
@@ -170,11 +174,14 @@ class AuthService {
         txn.update(itemRef, {
           'isLent': true,
           'borrowerId': borrowerIdRef,
-          'location': borrowerAddress, // Update location to borrower's address
-          'borrowedOn': FieldValue.serverTimestamp(),
+          'location': borrowerAddress,
+          'borrowedOn': Timestamp.now(),
           'dueAt': Timestamp.fromDate(dueDate),
         });
       });
+      
+      // Invalidate cache as item status changed
+      _cache.invalidateItem(itemId);
     }
 
     Stream<QuerySnapshot<Map<String, dynamic>>> streamBorrowedItems() {
@@ -212,17 +219,72 @@ class AuthService {
           'dueAt': null,
         });
       });
+      
+      // Invalidate cache as item status changed
+      _cache.invalidateItem(itemId);
     } //endregion
+
+    //region Cache-enabled item operations
+    
+    /// Get item with caching support - checks cache first, then Firebase
+    Future<Map<String, dynamic>?> getItemWithCache(String itemId) async {
+      // First check cache
+      final cachedItem = _cache.getItem(itemId);
+      if (cachedItem != null) {
+        return cachedItem;
+      }
+
+      // If not in cache, load from Firebase
+      try {
+        final doc = await _items.doc(itemId).get();
+        if (doc.exists) {
+          final itemData = doc.data()!;
+          // Cache the loaded item
+          _cache.cacheItem(itemId, itemData);
+          return itemData;
+        }
+      } catch (e) {
+        // If Firebase fails, return null
+        return null;
+      }
+      return null;
+    }
+
+    /// Preload items into cache from a snapshot
+    void preloadItemsToCache(QuerySnapshot<Map<String, dynamic>> snapshot) {
+      _cache.cacheItemsFromSnapshot(snapshot);
+    }
+
+    /// Invalidate item cache when item is updated
+    void invalidateItemCache(String itemId) {
+      _cache.invalidateItem(itemId);
+    }
+
+    /// Clear all cached items
+    void clearItemCache() {
+      _cache.clearAllItems();
+    }
+
+    /// Get cache statistics for debugging
+    Map<String, dynamic> getCacheStats() {
+      return _cache.getCacheStats();
+    }
+    
+    //endregion
 
     //region delete and update
     Future<void> deleteItem(String id) async {
       await _items.doc(id).delete();
+      // Invalidate cache when item is deleted
+      _cache.invalidateItem(id);
     }
 
     //update
     Future<void> updateItem(String id, Map<String, dynamic> updates) async {
       updates['updatedAt'] = FieldValue.serverTimestamp();
       await _items.doc(id).update(updates);
+      // Update cache with new data
+      _cache.updateCachedItem(id, updates);
     } //endregion
 
     //region laymen's termed firebase errors
