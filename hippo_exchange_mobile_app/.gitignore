@@ -333,3 +333,4 @@ macos/Flutter/Flutter-Debug.xcconfig
 macos/Flutter/Flutter-Release.xcconfig
 test/
 firebase.rules
+macos/Flutter/GeneratedPluginRegistrant.swift
