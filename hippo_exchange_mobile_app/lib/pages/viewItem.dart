@@ -5,6 +5,7 @@ import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ViewItemPage extends StatefulWidget {
   final String itemId;
@@ -67,17 +68,24 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   Future<void> _loadItemData() async {
     try {
-      final doc = await FirebaseFirestore.instanceFor(
-        app: Firebase.app(),
-        databaseId: 'inventory-db',
-      ).collection('items').doc(widget.itemId).get();
-
-      if (doc.exists) {
+      // Use cached data first
+      final itemData = await AuthService().getItemWithCache(widget.itemId);
+      
+      if (itemData != null) {
         setState(() {
-          _itemData = doc.data();
+          _itemData = itemData;
           _initializeControllers();
           _isLoading = false;
         });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Item not found')),
+          );
+        }
       }
     } catch (e) {
       setState(() {
@@ -317,7 +325,20 @@ class _ViewItemPageState extends State<ViewItemPage> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: imageUrl != null
-                  ? Image.network(imageUrl, fit: BoxFit.cover)
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF93B9E1),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.error,
+                        size: 80,
+                        color: Color(0xFF93B9E1),
+                      ),
+                    )
                   : const Icon(Icons.image, size: 80, color: Color(0xFF93B9E1)),
             ),
           ),
