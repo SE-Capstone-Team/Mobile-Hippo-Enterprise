@@ -30,9 +30,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
     try {
       await AuthService().signOut();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Logout Successful!')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Logout Successful!')),
+        // );
         // AuthGate will automatically handle navigation back to login
       }
     } catch (e) {
