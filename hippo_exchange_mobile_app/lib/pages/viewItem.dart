@@ -251,7 +251,6 @@ class _ViewItemPageState extends State<ViewItemPage> {
             FirebaseAuth.instance.currentUser?.uid;
     final isLent = _itemData!['isLent'] == true;
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-    final isBorrower = _itemData!['borrowerId'] != null && (_itemData!['borrowerId'] as DocumentReference).id == currentUserId;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
