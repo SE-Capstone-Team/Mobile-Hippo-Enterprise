@@ -8,6 +8,7 @@ import 'package:hippo_exchange_mobile_app/pages/viewItem.dart';
 // NEW: notifications imports
 import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
 import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -295,6 +296,9 @@ class _HomePageState extends State<HomePage> {
           );
         }
         
+        // Preload items into cache when we get fresh data
+        _authService.preloadItemsToCache(snapshot.data!);
+        
         // Filter docs to exclude items that match the search query and exclude current user's items
         final currentUser = FirebaseAuth.instance.currentUser;
         final filteredDocs = snapshot.data!.docs.where((doc) {
@@ -464,23 +468,15 @@ class FirebaseItemCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: imageUrl != null
-                        ? Image.network(
-                            imageUrl,
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
                             fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes !=
-                                          null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) =>
-                                _buildFallbackIcon(),
+                            placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF93b9e1),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => _buildFallbackIcon(),
                           )
                         : _buildFallbackIcon(),
                   ),
