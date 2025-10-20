@@ -60,6 +60,16 @@ class AuthService {
     }
   }
 
+  Future<String> uploadProfilePicture(File image) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not signed in');
+    final storageRef = _storage.ref().child('profile_images').child(user.uid);
+    final uploadTask = await storageRef.putFile(image);
+    final imageUrl = await uploadTask.ref.getDownloadURL();
+    await _profiles.doc(user.uid).update({'pfp': imageUrl});
+    return imageUrl;
+  }
+
   // endregion
 
   //region register process

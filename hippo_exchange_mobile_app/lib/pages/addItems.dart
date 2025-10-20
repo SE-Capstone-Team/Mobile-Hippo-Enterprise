@@ -22,18 +22,45 @@ class _AddItemPageState extends State<AddItemPage> {
   final TextEditingController _priceController = TextEditingController();
 
   final AuthService _authService = AuthService();
-  final ImagePicker _picker = ImagePicker();
   File? _imageFile;
 
   bool _isSubmitting = false;
 
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
       });
     }
+  }
+
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Photo Library'),
+              onTap: () {
+                _pickImage(ImageSource.gallery);
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Camera'),
+              onTap: () {
+                _pickImage(ImageSource.camera);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -188,7 +215,7 @@ class _AddItemPageState extends State<AddItemPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     GestureDetector(
-                      onTap: _pickImage,
+                      onTap: _showImageSourceActionSheet,
                       child: Container(
                         height: 200,
                         decoration: BoxDecoration(

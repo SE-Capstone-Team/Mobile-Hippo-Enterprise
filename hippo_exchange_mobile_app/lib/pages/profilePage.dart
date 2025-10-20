@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 typedef LogoutCallback = void Function();
 
@@ -22,6 +25,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   String email = "";
   String address = "";
   String? accountCreationDate;
+  String? _profileImageUrl;
 
   // Loading state
   bool _isLoading = true;
@@ -47,30 +51,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
   // Function to load current user data from Firebase
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
     final _db = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: AuthService.kFirestoreDbId);
-    final DocumentReference userProfileRef = _db.collection('profiles').doc(user?.uid);
-    final userProfile = await userProfileRef.get();
-    final loadedFirstName = userProfile['firstName'] ?? '';
-    final loadedLastName = userProfile['lastName'] ?? '';
-    final loadedAddress = userProfile['address'] ?? '';
+    final DocumentReference userProfileRef = _db.collection('profiles').doc(user.uid);
 
     try {
-      if (user != null) {
-        setState(() {
-          firstName = loadedFirstName;
-          lastName = loadedLastName;
-          address = loadedAddress;
-          email = user.email ?? "No email";
-          accountCreationDate = user.metadata.creationTime?.toString().split(' ')[0] ?? "Unknown";
-          _isLoading = false;
-        });
+      final userProfile = await userProfileRef.get();
+      final data = userProfile.data() as Map<String, dynamic>?;
 
-        // Update text controllers with real data
-        _firstNameController.text = firstName;
-        _lastNameController.text = lastName;
-        _addressController.text = address;
-        _emailController.text = email;
-      }
+      setState(() {
+        firstName = data?['firstName'] ?? '';
+        lastName = data?['lastName'] ?? '';
+        address = data?['address'] ?? '';
+        email = user.email ?? "No email";
+        accountCreationDate = user.metadata.creationTime?.toString().split(' ')[0] ?? "Unknown";
+        _profileImageUrl = data?['pfp'];
+        _isLoading = false;
+      });
+
+      // Update text controllers with real data
+      _firstNameController.text = firstName;
+      _lastNameController.text = lastName;
+      _addressController.text = address;
+      _emailController.text = email;
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -133,6 +139,61 @@ class _UserProfilePageState extends State<UserProfilePage> {
     setState(() {
       _isEditing = !_isEditing;
     });
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    if (pickedFile != null) {
+      _uploadProfilePicture(File(pickedFile.path));
+    }
+  }
+
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Photo Library'),
+              onTap: () {
+                _pickImage(ImageSource.gallery);
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Camera'),
+              onTap: () {
+                _pickImage(ImageSource.camera);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _uploadProfilePicture(File image) async {
+    try {
+      final imageUrl = await AuthService().uploadProfilePicture(image);
+      setState(() {
+        _profileImageUrl = imageUrl;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile picture updated successfully!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AuthService().mapFirebaseError(e))),
+        );
+      }
+    }
   }
 
   Widget _buildEditField(String label, TextEditingController controller) {
@@ -254,24 +315,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Column(
       children: [
         // Profile avatar in blue circle - larger
-        Container(
-          width: 140,
-          height: 140,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Color(0xFF93b9e1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.person,
-            size: 70,
-            color: Colors.white,
+        GestureDetector(
+          onTap: _showImageSourceActionSheet,
+          child: CircleAvatar(
+            radius: 70,
+            backgroundColor: const Color(0xFF93b9e1),
+            backgroundImage: _profileImageUrl != null ? NetworkImage(_profileImageUrl!) : null,
+            child: _profileImageUrl == null
+                ? const Icon(
+                    Icons.person,
+                    size: 70,
+                    color: Colors.white,
+                  )
+                : null,
           ),
         ),
         const SizedBox(height: 40),

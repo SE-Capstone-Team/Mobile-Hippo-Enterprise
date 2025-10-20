@@ -25,6 +25,7 @@ class ViewItemPage extends StatefulWidget {
 
 class _ViewItemPageState extends State<ViewItemPage> {
   Map<String, dynamic>? _itemData;
+  Map<String, dynamic>? _ownerData;
   bool _isLoading = true;
 
   // State for UI interactivity
@@ -45,6 +46,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
     if (widget.itemData != null) {
       _itemData = widget.itemData;
       _initializeControllers();
+      _loadOwnerData();
       _isLoading = false;
     } else {
       _loadItemData();
@@ -77,6 +79,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
           _initializeControllers();
           _isLoading = false;
         });
+        _loadOwnerData();
       } else {
         setState(() {
           _isLoading = false;
@@ -95,6 +98,32 @@ class _ViewItemPageState extends State<ViewItemPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AuthService().mapFirebaseError(e))),
         );
+      }
+    }
+  }
+
+  Future<void> _loadOwnerData() async {
+    if (_itemData != null && _itemData!['ownerId'] is DocumentReference) {
+      try {
+        final ownerId = (_itemData!['ownerId'] as DocumentReference).id;
+        final _db = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: AuthService.kFirestoreDbId);
+        final ownerProfile = await _db.collection('profiles').doc(ownerId).get();
+
+        if (mounted) {
+          setState(() {
+            _ownerData = ownerProfile.data();
+          });
+        }
+      } catch (e) {
+        // Handle potential errors, like owner profile not found
+        if (mounted) {
+          setState(() {
+            _ownerData = null; // Clear owner data on error
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not load owner details: ${e.toString()}')),
+          );
+        }
       }
     }
   }
@@ -247,10 +276,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
   @override
   Widget build(BuildContext context) {
     final isOwner = _itemData != null &&
-        (_itemData!['ownerId'] as DocumentReference).id ==
-            FirebaseAuth.instance.currentUser?.uid;
-    final isLent = _itemData!['isLent'] == true;
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+        _itemData!['ownerId'] is DocumentReference &&
+        (_itemData!['ownerId'] as DocumentReference).id == FirebaseAuth.instance.currentUser?.uid;
+    final isLent = _itemData != null && _itemData!['isLent'] == true;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),
@@ -403,114 +431,88 @@ class _ViewItemPageState extends State<ViewItemPage> {
           if (widget.showBorrowButton && !isLent)
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
                 onPressed: _borrowItem,
+                icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                label: const Text('Borrow Item', style: TextStyle(color: Colors.white, fontSize: 18)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF93B9E1),
-                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Borrow This Item', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               ),
             ),
-            
-            if (isBorrower)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _returnItem,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Return Item', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          if (isBorrower)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _returnItem,
+                icon: const Icon(Icons.assignment_return, color: Colors.white),
+                label: const Text('Return Item', style: TextStyle(color: Colors.white, fontSize: 18)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-              )
+              ),
+            ),
         ],
       ),
     );
   }
 
-  // Helper for collapsible sections
   Widget _buildCollapsibleSection({
     required String title,
     required Widget child,
     required bool isExpanded,
     required VoidCallback onToggle,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF93B9E1).withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: onToggle,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
+                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Icon(isExpanded ? Icons.expand_less : Icons.expand_more, color: Colors.grey[600]),
               ],
             ),
           ),
-          if (isExpanded) ...[
-            const Divider(height: 24, thickness: 1),
-            child,
-          ],
+        ),
+        if (isExpanded) ...[
+          const SizedBox(height: 8),
+          child,
         ],
-      ),
+        const Divider(height: 32, thickness: 1),
+      ],
     );
   }
 
-  // Fetches and displays owner name
-  Widget _buildOwnerName() {
-    // ... (same as before)
-        final ownerId = _itemData!['ownerId'] as DocumentReference?;
-
-    if (ownerId == null) {
-      return _buildDetailRow('Owner', 'Unknown');
-    }
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: ownerId.get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildDetailRow('Owner', 'Loading...');
-        }
-        if (snapshot.hasError || !snapshot.data!.exists) {
-          return _buildDetailRow('Owner', 'Unknown');
-        }
-
-        final ownerData = snapshot.data!.data() as Map<String, dynamic>?;
-        final firstName = ownerData?['firstName'] ?? '';
-        final lastName = ownerData?['lastName'] ?? '';
-        final displayName = '$firstName $lastName'.trim();
-
-        return _buildDetailRow('Owner', displayName.isNotEmpty ? displayName : 'Unnamed');
-      },
-    );
-  }
-
-  // Standard row for displaying details
   Widget _buildDetailRow(String label, String value, {Color? statusColor}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 120, child: Text('$label:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black54))),
-        Expanded(child: Text(value, style: TextStyle(fontSize: 16, color: statusColor ?? Colors.black87, fontWeight: statusColor != null ? FontWeight.w600 : FontWeight.normal))),
+        Text('$label:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              color: statusColor ?? Colors.black,
+              fontWeight: statusColor != null ? FontWeight.bold : FontWeight.normal,
+            ),
+            textAlign: TextAlign.end,
+          ),
+        ),
       ],
     );
   }
-  
-  // Row that can switch between text and a text field
+
   Widget _buildEditableDetailRow({
     required String label,
     required String value,
@@ -520,15 +522,54 @@ class _ViewItemPageState extends State<ViewItemPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(width: 120, child: Text('$label:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black54))),
+        Text('$label:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+        const SizedBox(width: 8),
         Expanded(
           child: isEditing
               ? TextField(
                   controller: controller,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(prefixText: '\$', contentPadding: EdgeInsets.zero),
+                  textAlign: TextAlign.end,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.zero),
                 )
-              : Text(value, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+              : Text(
+                  value,
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.end,
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOwnerName() {
+    if (_ownerData == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final ownerName = _ownerData!['firstName'] ?? 'Unknown Owner';
+    final profilePictureUrl = _ownerData!['pfp'];
+
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: const Color(0xFF93B9E1),
+          backgroundImage: profilePictureUrl != null ? NetworkImage(profilePictureUrl) : null,
+          child: profilePictureUrl == null
+              ? const Icon(
+                  Icons.person,
+                  color: Colors.white,
+                )
+              : null,
+        ),
+        const SizedBox(width: 12),
+        Text('Owner: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+        Expanded(
+          child: Text(
+            ownerName,
+            style: const TextStyle(fontSize: 16),
+            textAlign: TextAlign.end,
+          ),
         ),
       ],
     );
