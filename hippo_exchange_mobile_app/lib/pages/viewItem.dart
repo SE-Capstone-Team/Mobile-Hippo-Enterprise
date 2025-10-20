@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -28,11 +29,15 @@ class _ViewItemPageState extends State<ViewItemPage> {
   Map<String, dynamic>? _ownerData;
   Map<String, dynamic>? _borrowerData; // store borrower's profile info
   bool _isLoading = true;
+  String? _errorMessage;
 
   // State for UI interactivity
   bool _isEditing = false;
   bool _isDescriptionExpanded = true;
   bool _isDetailsExpanded = true;
+
+  // New image file
+  File? _newImageFile;
 
   // Controllers for editing
   late final TextEditingController _descController;
@@ -72,35 +77,32 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
   Future<void> _loadItemData() async {
     try {
-      // Use cached data first
       final itemData = await AuthService().getItemWithCache(widget.itemId);
-      
+
       if (itemData != null) {
-        setState(() {
-          _itemData = itemData;
-          _initializeControllers();
-          _isLoading = false;
-        });
-        _loadOwnerData();
-        _loadBorrowerData(); // new line to load borrower's profile
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Item not found')),
-          );
+          setState(() {
+            _itemData = itemData;
+            _initializeControllers();
+            _isLoading = false;
+          });
+          _loadOwnerData();
+          _loadBorrowerData(); // new line to load borrower's profile
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Item not found';
+          });
         }
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AuthService().mapFirebaseError(e))),
-        );
+        setState(() {
+          _isLoading = false;
+          _errorMessage = AuthService().mapFirebaseError(e);
+        });
       }
     }
   }
@@ -118,17 +120,51 @@ class _ViewItemPageState extends State<ViewItemPage> {
           });
         }
       } catch (e) {
-        // Handle potential errors, like owner profile not found
         if (mounted) {
           setState(() {
-            _ownerData = null; // Clear owner data on error
+            _ownerData = null;
+            _errorMessage = 'Could not load owner details: ${e.toString()}';
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not load owner details: ${e.toString()}')),
-          );
         }
       }
     }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        _newImageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Photo Library'),
+              onTap: () {
+                _pickImage(ImageSource.gallery);
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Camera'),
+              onTap: () {
+                _pickImage(ImageSource.camera);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // fetch borrower's profile if item is lent
@@ -155,6 +191,9 @@ class _ViewItemPageState extends State<ViewItemPage> {
   }
 
   Future<void> _borrowItem() async {
+    setState(() {
+      _errorMessage = null;
+    });
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -194,28 +233,21 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
       if (!mounted) return;
       Navigator.of(context).pop(); // Close loading dialog
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Successfully borrowed "${_itemData!['name']}"!'),
-          backgroundColor: Colors.green,
-        ),
-      );
       Navigator.of(context).pop(); // Go back to home page
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop(); // Close loading dialog
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AuthService().mapFirebaseError(e)),
-          backgroundColor: Colors.red,
-        ),
-      );
+      setState(() {
+        _errorMessage = AuthService().mapFirebaseError(e);
+      });
     }
   }
 
   Future<void> _returnItem() async {
+    setState(() {
+      _errorMessage = null;
+    });
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -240,61 +272,58 @@ class _ViewItemPageState extends State<ViewItemPage> {
     try {
       await AuthService().returnItem(itemId: widget.itemId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('"${_itemData!['name']}" has been returned successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
         Navigator.of(context).pop(); // Go back
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AuthService().mapFirebaseError(e)),
-            backgroundColor: Colors.red,
-          ),
-        );
+        setState(() {
+          _errorMessage = AuthService().mapFirebaseError(e);
+        });
       }
     }
   }
 
   Future<void> _saveChanges() async {
     if (!_isEditing) return;
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
 
     final newDesc = _descController.text;
     double newPrice = double.tryParse(_priceController.text) ?? 0.0;
     if (newPrice < 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Price cannot be negative.")),
-        );
-        return;
+      setState(() {
+        _errorMessage = "Price cannot be negative.";
+        _isLoading = false;
+      });
+      return;
     }
 
     try {
-      await AuthService().updateItem(widget.itemId, {
-        'desc': newDesc,
-        'pricePerDay': newPrice,
-      });
+      await AuthService().updateItem(
+        widget.itemId,
+        {
+          'desc': newDesc,
+          'pricePerDay': newPrice,
+        },
+        _newImageFile, // Pass the new image file if it exists
+      );
 
-      // Manually update local state to reflect changes immediately
+      // Reload data to show all changes, including new image URL
+      await _loadItemData();
+
       setState(() {
-        _itemData!['desc'] = newDesc;
-        _itemData!['pricePerDay'] = newPrice;
         _isEditing = false;
+        _newImageFile = null;
+        _isLoading = false; // Turn off loader after reload
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item updated successfully!')),
-        );
-      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AuthService().mapFirebaseError(e))),
-        );
+        setState(() {
+          _errorMessage = AuthService().mapFirebaseError(e);
+          _isLoading = false; // Turn off loader on error
+        });
       }
     }
   }
@@ -367,32 +396,37 @@ class _ViewItemPageState extends State<ViewItemPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Image and Title (non-collapsible)
-          Container(
-            width: double.infinity,
-            height: 250,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: const Color(0xFFF2F2F2),
-              border: Border.all(color: const Color(0xFF93B9E1).withOpacity(0.3)),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF93B9E1),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => const Icon(
-                        Icons.error,
-                        size: 80,
-                        color: Color(0xFF93B9E1),
-                      ),
-                    )
-                  : const Icon(Icons.image, size: 80, color: Color(0xFF93B9E1)),
+          GestureDetector(
+            onTap: _isEditing ? _showImageSourceActionSheet : null,
+            child: Container(
+              width: double.infinity,
+              height: 250,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: const Color(0xFFF2F2F2),
+                border: Border.all(color: const Color(0xFF93B9E1).withOpacity(0.3)),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: _newImageFile != null
+                    ? Image.file(_newImageFile!, fit: BoxFit.cover)
+                    : (imageUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF93B9E1),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => const Icon(
+                              Icons.error,
+                              size: 80,
+                              color: Color(0xFF93B9E1),
+                            ),
+                          )
+                        : const Icon(Icons.image, size: 80, color: Color(0xFF93B9E1))),
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -484,6 +518,15 @@ class _ViewItemPageState extends State<ViewItemPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
+              ),
+            ),
+          const SizedBox(height: 16),
+          if (_errorMessage != null)
+            Center(
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(color: Colors.red, fontSize: 14),
+                textAlign: TextAlign.center,
               ),
             ),
         ],
@@ -593,7 +636,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
               : null,
         ),
         const SizedBox(width: 12),
-        Text('Owner: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+        Text('Owner:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[600])),
         Expanded(
           child: Text(
             ownerName,

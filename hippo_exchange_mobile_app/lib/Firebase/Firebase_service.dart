@@ -290,8 +290,30 @@ class AuthService {
     }
 
     //update
-    Future<void> updateItem(String id, Map<String, dynamic> updates) async {
+    Future<void> updateItem(String id, Map<String, dynamic> updates, [File? newImage]) async {
       updates['updatedAt'] = FieldValue.serverTimestamp();
+      
+      if (newImage != null) {
+        // Get the old image URL before updating
+        final oldDoc = await _items.doc(id).get();
+        final oldData = oldDoc.data();
+        final oldImageUrl = oldData?['picture'];
+
+        // Upload new image
+        final newImageUrl = await _uploadImage(newImage);
+        updates['picture'] = newImageUrl;
+
+        // Delete old image from storage if it exists
+        if (oldImageUrl != null) {
+          try {
+            await _storage.refFromURL(oldImageUrl).delete();
+          } catch (e) {
+            // Log error, but don't block the update
+            print("Error deleting old image: $e");
+          }
+        }
+      }
+      
       await _items.doc(id).update(updates);
       // Update cache with new data
       _cache.updateCachedItem(id, updates);

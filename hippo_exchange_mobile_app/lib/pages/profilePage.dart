@@ -315,9 +315,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Column(
       children: [
         // Profile avatar in blue circle - larger
-        GestureDetector(
-          onTap: _showImageSourceActionSheet,
-          child: CircleAvatar(
+        CircleAvatar(
             radius: 70,
             backgroundColor: const Color(0xFF93b9e1),
             backgroundImage: _profileImageUrl != null ? NetworkImage(_profileImageUrl!) : null,
@@ -329,7 +327,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   )
                 : null,
           ),
-        ),
         const SizedBox(height: 40),
 
         // User info in blue card - larger padding and text
@@ -404,6 +401,40 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 color: Colors.white,
               ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundImage: _profileImageUrl != null
+                        ? NetworkImage(_profileImageUrl!)
+                        : null,
+                    child: _profileImageUrl == null
+                        ? const Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Colors.white,
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.green[600],
+                      child: IconButton(
+                        icon: const Icon(Icons.edit,
+                            color: Colors.white, size: 20),
+                        onPressed: _showImageSourceActionSheet,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 30),
             _buildEditField("First Name", _firstNameController),
