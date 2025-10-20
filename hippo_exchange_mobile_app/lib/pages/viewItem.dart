@@ -372,6 +372,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
     final borrowedOnTimestamp = _itemData!['borrowedOn'] as Timestamp?;
 
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final isOwner = _itemData!['ownerId'] != null && (_itemData!['ownerId'] as DocumentReference).id == currentUserId;
     final isBorrower = _itemData!['borrowerId'] != null && (_itemData!['borrowerId'] as DocumentReference).id == currentUserId;
 
     String? borrowedDate, dueDate;
@@ -475,7 +476,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
 
                 _buildDetailRow('Status', isLent ? 'Currently Borrowed' : 'Available', statusColor: isLent ? Colors.red : Colors.green),
 
-                if (isLent) ...[ // if isLent is true, creates and displays a widget displaying the borrower's name
+                if (isLent && isOwner) ...[ // if isLent is true, creates and displays a widget displaying the borrower's name
                   const SizedBox(height: 12),
                   _buildBorrowerName()
                 ],

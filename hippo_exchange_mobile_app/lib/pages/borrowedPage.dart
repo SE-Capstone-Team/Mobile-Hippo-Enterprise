@@ -70,6 +70,28 @@ class _BorrowingPageState extends State<BorrowingPage> {
     }
   }
 
+  Future<String> _getOwnerName(DocumentReference? ownerRef) async {
+    if (ownerRef == null) {
+      return 'Unknown Owner';
+    }
+    try {
+      final doc = await ownerRef.get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        final firstName = data['firstName'] ?? '';
+        final lastName = data['lastName'] ?? '';
+        if (firstName.isNotEmpty || lastName.isNotEmpty) {
+          return '$firstName $lastName'.trim();
+        }
+        return data['email'] ?? 'Unknown Owner'; // Fallback to email
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error getting owner name: $e');
+    }
+    return 'Unknown Owner';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -143,7 +165,7 @@ class _BorrowingPageState extends State<BorrowingPage> {
                 final d = docs[i];
                 final data = d.data() as Map<String, dynamic>;
                 final itemName = data['name'] ?? 'Unnamed Item';
-                final ownerName = data['ownerDisplayName'] ?? 'Owner';
+                final ownerIdRef = data['ownerId'] as DocumentReference?;
                 final imageUrl = data['picture'];
                 final dueAtTimestamp = data['dueAt'] as Timestamp?;
 
@@ -212,14 +234,20 @@ class _BorrowingPageState extends State<BorrowingPage> {
                               children: [
                                 Text(itemName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                                 const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                                  ),
-                                  child: Text('Borrowed from: $ownerName', style: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.w600)),
+                                FutureBuilder<String>(
+                                  future: _getOwnerName(ownerIdRef),
+                                  builder: (context, ownerSnapshot) {
+                                    final ownerName = ownerSnapshot.data ?? 'Loading...';
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                                      ),
+                                      child: Text('Borrowed from: $ownerName', style: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.w600)),
+                                    );
+                                  },
                                 ),
                                 if (dueDate != null) ...[
                                   const SizedBox(height: 8),
