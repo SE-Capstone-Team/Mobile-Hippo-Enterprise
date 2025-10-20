@@ -26,6 +26,7 @@ class ViewItemPage extends StatefulWidget {
 class _ViewItemPageState extends State<ViewItemPage> {
   Map<String, dynamic>? _itemData;
   Map<String, dynamic>? _ownerData;
+  Map<String, dynamic>? _borrowerData; // store borrower's profile info
   bool _isLoading = true;
 
   // State for UI interactivity
@@ -47,6 +48,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
       _itemData = widget.itemData;
       _initializeControllers();
       _loadOwnerData();
+      _loadBorrowerData(); // new line to load borrower's profile
       _isLoading = false;
     } else {
       _loadItemData();
@@ -80,6 +82,7 @@ class _ViewItemPageState extends State<ViewItemPage> {
           _isLoading = false;
         });
         _loadOwnerData();
+        _loadBorrowerData(); // new line to load borrower's profile
       } else {
         setState(() {
           _isLoading = false;
@@ -123,6 +126,29 @@ class _ViewItemPageState extends State<ViewItemPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Could not load owner details: ${e.toString()}')),
           );
+        }
+      }
+    }
+  }
+
+  // fetch borrower's profile if item is lent
+  Future <void> _loadBorrowerData() async {
+    if (_itemData != null && _itemData!['borrowerId'] is DocumentReference) {
+      try{
+        final borrowerId = (_itemData!['borrowerId'] as DocumentReference).id;
+        final _db = FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: AuthService.kFirestoreDbId);
+        final borrowerProfile = await _db.collection('profiles').doc(borrowerId).get();
+
+        if (mounted) {
+          setState(() {
+            _borrowerData = borrowerProfile.data();
+          });
+        }
+      } catch(e){
+        if (mounted) {
+          setState((){
+            _borrowerData = null;
+          });
         }
       }
     }
@@ -414,7 +440,11 @@ class _ViewItemPageState extends State<ViewItemPage> {
                 ],
 
                 _buildDetailRow('Status', isLent ? 'Currently Borrowed' : 'Available', statusColor: isLent ? Colors.red : Colors.green),
-                
+
+                if (isLent) ...[ // if isLent is true, creates and displays a widget displaying the borrower's name
+                  const SizedBox(height: 12),
+                  _buildBorrowerName()
+                ],
                 if (borrowedDate != null) ...[
                   const SizedBox(height: 12),
                   _buildDetailRow('Borrowed On', borrowedDate),
@@ -567,6 +597,27 @@ class _ViewItemPageState extends State<ViewItemPage> {
         Expanded(
           child: Text(
             ownerName,
+            style: const TextStyle(fontSize: 16),
+            textAlign: TextAlign.end,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBorrowerName(){
+    if (_borrowerData == null) {
+      return _buildDetailRow('Borrowed By', 'Loading...');
+    }
+
+    final borrowerName = '${_borrowerData!['firstName'] ?? ''} ${_borrowerData!['lastName'] ?? ''}'.trim();
+
+    return Row(
+      children: [
+        Text('Borrowed By:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+        Expanded(
+          child: Text(
+            borrowerName.isNotEmpty ? borrowerName: 'Unknown',
             style: const TextStyle(fontSize: 16),
             textAlign: TextAlign.end,
           ),
