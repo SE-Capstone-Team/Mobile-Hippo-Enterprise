@@ -1,0 +1,300 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:hippo_exchange_mobile_app/Firebase/Firebase_service.dart';
+import 'package:image_picker/image_picker.dart';
+
+// NEW: notifications imports
+import 'package:hippo_exchange_mobile_app/pages/notifications_inbox.dart';
+import 'package:hippo_exchange_mobile_app/services/notification_service.dart';
+
+class AddItemPage extends StatefulWidget {
+  const AddItemPage({super.key});
+
+  @override
+  State<AddItemPage> createState() => _AddItemPageState();
+}
+
+class _AddItemPageState extends State<AddItemPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+
+  final AuthService _authService = AuthService();
+  File? _imageFile;
+
+  bool _isSubmitting = false;
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Photo Library'),
+              onTap: () {
+                _pickImage(ImageSource.gallery);
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera),
+              title: const Text('Camera'),
+              onTap: () {
+                _pickImage(ImageSource.camera);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descController.dispose();
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitItem() async {
+    if (_nameController.text.isEmpty ||
+        _descController.text.isEmpty ||
+        _priceController.text.isEmpty ||
+        _imageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Please fill in all fields and add an image")),
+      );
+      return;
+    }
+    if (_isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      double price = double.tryParse(_priceController.text) ?? 0.0;
+      if (price < 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Price cannot be negative.")),
+        );
+        setState(() => _isSubmitting = false); // Reset button
+        return;
+      }
+
+      await _authService.createItem(
+        _nameController.text,
+        _descController.text,
+        _imageFile!,
+        price,
+      );
+
+      // NEW: local + (optional) system banner notification
+      await NotificationService.instance.notifyLocal(
+        title: 'Item added',
+        body: '“${_nameController.text}” was added successfully.',
+        payload: {'type': 'item_added', 'name': _nameController.text},
+        showSystemBanner: true,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Item added successfully!")),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AuthService().mapFirebaseError(e))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text("Add Item to Lend"),
+        backgroundColor: const Color(0xFF93B9E1),
+
+        // NEW: Notification Bell with unread badge
+        actions: [
+          StatefulBuilder(
+            builder: (context, setNotificationState) {
+              return FutureBuilder<int>(
+                future: NotificationService.instance.getUnreadCount(),
+                builder: (context, snap) {
+                  final unread = snap.data ?? 0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        tooltip: 'Notifications',
+                        icon: const Icon(
+                          Icons.notifications,
+                          size: 28, // Increased size
+                        ),
+                        onPressed: () async {
+                          // Immediate feedback - disable during navigation
+                          setNotificationState(() {});
+                          
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsInboxPage(),
+                            ),
+                          );
+                          
+                          // Only refresh the notification badge, not the entire page
+                          if (mounted) {
+                            setNotificationState(() {});
+                          }
+                        },
+                      ),
+                      if (unread > 0)
+                        Positioned(
+                          right: 6,
+                          top: 6,
+                          child: IgnorePointer(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF93B9E1), // Updated to match app theme
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                '$unread',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start, // Aligns content to the top
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    GestureDetector(
+                      onTap: _showImageSourceActionSheet,
+                      child: Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: _imageFile != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _imageFile!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
+                              )
+                            : const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
+                                    SizedBox(height: 8),
+                                    Text("Tap to add a photo", style: TextStyle(color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: "Item Title",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: "Price Per Day",
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _descController,
+                      decoration: const InputDecoration(
+                        labelText: "Description",
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 4,
+                    ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _isSubmitting ? null : _submitItem,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF93B9E1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 60,
+                            vertical: 20,
+                          ),
+                        ),
+                        child: _isSubmitting
+                            ? const CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              )
+                            : const Text("Submit Item"),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

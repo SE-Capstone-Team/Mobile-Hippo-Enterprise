@@ -1,1 +1,5 @@
 include: package:flutter_lints/flutter.yaml
+analyzer:
+  errors:
+    file_names: ignore
+    unused_import: ignore
